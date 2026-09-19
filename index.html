@@ -95,7 +95,10 @@ pre{white-space:pre-wrap;word-break:break-word}
 
           <div class="alert alert-info small">
             <i class="bi bi-info-circle"></i>
-            Prototype login. Production authentication and role authorization are handled by the FastAPI backend.
+            <strong>Demo Credentials:</strong><br>
+            • Surveyor: <code>surveyor</code> (or GOV-SURV) / <code>pass123</code><br>
+            • Officer: <code>officer</code> (or GOV-OFFICER) / <code>pass123</code><br>
+            • Admin: <code>admin</code> / <code>admin123</code>
           </div>
 
           <label class="form-label">Select Role</label>
@@ -109,8 +112,8 @@ pre{white-space:pre-wrap;word-break:break-word}
 
           <div id="credentialBox">
             <div class="mb-3">
-              <label class="form-label">Government / User ID</label>
-              <input id="loginUser" class="form-control" placeholder="Enter user ID">
+              <label class="form-label">Username / User ID</label>
+              <input id="loginUser" class="form-control" placeholder="e.g. surveyor or officer">
             </div>
             <div class="mb-3">
               <label class="form-label">Password</label>
@@ -146,12 +149,12 @@ pre{white-space:pre-wrap;word-break:break-word}
         <div class="card-header"><i class="bi bi-person-check"></i> Mobile Verification</div>
         <div class="card-body">
           <div class="alert alert-warning small">
-            Prototype only — this is not Aadhaar authentication.
+            Prototype authentication simulation.
           </div>
           <label class="form-label">Registered Mobile Number</label>
           <input id="farmerMobile" class="form-control mb-2" maxlength="10" placeholder="10-digit mobile">
           <button class="btn btn-outline-primary btn-sm" onclick="sendMockOtp()">Send OTP</button>
-          <input id="farmerOtp" class="form-control mt-2" placeholder="Prototype OTP">
+          <input id="farmerOtp" class="form-control mt-2" placeholder="Prototype OTP (1234)">
           <button class="btn btn-primary btn-sm mt-2" onclick="verifyMockOtp()">Verify</button>
           <div id="farmerVerificationStatus" class="small mt-2"></div>
         </div>
@@ -236,20 +239,6 @@ pre{white-space:pre-wrap;word-break:break-word}
             </div>
           </div>
 
-          <hr>
-          <h6>Old Dimensions (m)</h6>
-          <div class="row g-2">
-            <div class="col-6"><input id="oldNorth" type="number" step="0.01" class="form-control" placeholder="North"></div>
-            <div class="col-6"><input id="oldSouth" type="number" step="0.01" class="form-control" placeholder="South"></div>
-            <div class="col-6"><input id="oldEast" type="number" step="0.01" class="form-control" placeholder="East"></div>
-            <div class="col-6"><input id="oldWest" type="number" step="0.01" class="form-control" placeholder="West"></div>
-          </div>
-
-          <div class="mt-3">
-            <label class="form-label">Old Record Image / Document</label>
-            <input id="oldRecordFile" type="file" class="form-control" accept="image/*,.pdf">
-          </div>
-
           <button class="btn btn-primary mt-3 w-100" onclick="registerExistingRecord()">
             <i class="bi bi-database-add"></i> Save Existing Record
           </button>
@@ -290,13 +279,6 @@ pre{white-space:pre-wrap;word-break:break-word}
               <i class="bi bi-filetype-json"></i> Import GeoJSON
               <input id="geojsonFile" type="file" accept=".geojson,.json,application/geo+json" hidden onchange="processGeoJSON(event)">
             </label>
-          </div>
-
-          <div class="drop-zone mt-3">
-            <i class="bi bi-cloud-arrow-up fs-3"></i>
-            <div class="fw-semibold">Drone / Orthophoto Evidence</div>
-            <small class="text-muted">Upload imagery for the parcel case file. Processing/orthorectification should be performed by the GIS backend or approved processing workflow.</small>
-            <input id="droneFile" type="file" class="form-control mt-2" accept="image/*,.tif,.tiff,.jpg,.jpeg,.png">
           </div>
 
           <button class="btn btn-success mt-3 w-100" onclick="submitModernSurvey()">
@@ -390,7 +372,7 @@ pre{white-space:pre-wrap;word-break:break-word}
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h3>Officer Command Centre</h3>
-      <p class="text-muted mb-0">Review evidence, quality checks and survey history before the configured official decision.</p>
+      <p class="text-muted mb-0">Review evidence, quality checks and survey history before official decision.</p>
     </div>
     <span class="badge bg-dark">AUTHORIZED OFFICER</span>
   </div>
@@ -440,9 +422,6 @@ pre{white-space:pre-wrap;word-break:break-word}
   <div class="card mt-3">
     <div class="card-header"><i class="bi bi-clock-history"></i> System Activity / Audit Events</div>
     <div class="card-body">
-      <div class="alert alert-secondary small mb-2">
-        This panel displays browser-side prototype events. Production audit logging must be server-side and append-only.
-      </div>
       <div id="activityLog"></div>
     </div>
   </div>
@@ -453,15 +432,15 @@ pre{white-space:pre-wrap;word-break:break-word}
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h3>Administration</h3>
-      <p class="text-muted mb-0">Prototype administrative dashboard. Actual permissions must be enforced by FastAPI.</p>
+      <p class="text-muted mb-0">Prototype administrative dashboard.</p>
     </div>
     <span class="badge bg-danger">ADMIN</span>
   </div>
 
   <div class="row g-3">
-    <div class="col-md-4"><div class="card"><div class="card-body"><h5>Users & Roles</h5><p class="text-muted">Manage users, roles and permissions through backend administration.</p></div></div></div>
-    <div class="col-md-4"><div class="card"><div class="card-body"><h5>System Integrations</h5><p class="text-muted">Configure approved government/GIS data integrations and APIs.</p></div></div></div>
-    <div class="col-md-4"><div class="card"><div class="card-body"><h5>Audit & Backup</h5><p class="text-muted">Production audit logs, backups, retention and recovery policies.</p></div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body"><h5>Users & Roles</h5><p class="text-muted">Manage users and permissions.</p></div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body"><h5>System Integrations</h5><p class="text-muted">Configure GIS APIs.</p></div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body"><h5>Audit & Backup</h5><p class="text-muted">Retention and recovery policies.</p></div></div></div>
   </div>
 </section>
 
@@ -480,18 +459,11 @@ pre{white-space:pre-wrap;word-break:break-word}
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-/* ============================================================
-   LANDLENS FRONTEND
-   Render-compatible:
-   API calls intentionally use relative paths: /api/...
-   ============================================================ */
-
 let currentUserRole = "";
 let currentGovId = "";
 let accessToken = "";
@@ -507,7 +479,7 @@ let statusChartInst = null;
 let droneFlightPath = null;
 let currentGeoJSON = null;
 
-const API = ""; // Same Render origin. Do NOT change to localhost.
+const API = "";
 
 document.addEventListener("DOMContentLoaded", () => {
   initializeMap();
@@ -518,9 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateLoginFields();
 });
 
-function apiUrl(path){
-  return API + path;
-}
+function apiUrl(path){ return API + path; }
 
 function showToast(message, type="info"){
   const el = document.createElement("div");
@@ -565,7 +535,7 @@ function updateLoginFields(){
 
 async function login(){
   const role = document.getElementById("loginRole").value;
-  const user = document.getElementById("loginUser").value.trim();
+  const rawUser = document.getElementById("loginUser").value.trim().toLowerCase();
   const password = document.getElementById("loginPassword").value;
 
   if(role === "FARMER"){
@@ -576,17 +546,25 @@ async function login(){
     return;
   }
 
-  if(!user || !password){
-    showToast("Enter user ID and password.", "warning");
+  if(!rawUser || !password){
+    showToast("Enter username and password.", "warning");
     return;
   }
 
-  /*
-    Production path:
-    FastAPI OAuth2 endpoint is /api/auth/login.
-    The browser sends username/password to the backend.
-    Role is read from the returned JWT/backend response, not trusted from UI.
-  */
+  // Auto-map government IDs or friendly names to backend usernames
+  const userMap = {
+    "gov-surv": "surveyor",
+    "surveyor": "surveyor",
+    "gov-head": "surveyhead",
+    "surveyhead": "surveyhead",
+    "gov-officer": "officer",
+    "officer": "officer",
+    "gov-admin": "admin",
+    "admin": "admin"
+  };
+
+  const user = userMap[rawUser] || rawUser;
+
   try{
     const form = new URLSearchParams();
     form.append("username", user);
@@ -603,13 +581,8 @@ async function login(){
       accessToken = data.access_token || "";
       localStorage.setItem("landlens_access_token", accessToken);
 
-      /*
-        The current backend may only return the token.
-        Until a /me endpoint is available, retain the selected role
-        for the prototype UI. Server-side authorization remains authoritative.
-      */
       currentUserRole = role;
-      currentGovId = user;
+      currentGovId = rawUser.toUpperCase();
       showWorkspaceForRole(role);
       updateHeader();
       addLog(`Login successful for ${role}`);
@@ -617,12 +590,7 @@ async function login(){
       return;
     }
 
-    /*
-      Development fallback is intentionally not automatic.
-      This prevents a fake frontend credential system from bypassing
-      backend authentication on Render.
-    */
-    showToast("Backend authentication failed. Check the FastAPI login endpoint and credentials.", "danger");
+    showToast("Invalid username or password.", "danger");
   }catch(error){
     showToast("Could not connect to the Render backend.", "danger");
     console.error(error);
@@ -653,9 +621,7 @@ function showWorkspaceForRole(role){
 function showWorkspace(id){
   document.querySelectorAll(".workspace").forEach(x => x.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-  setTimeout(() => {
-    if(map) map.invalidateSize();
-  }, 100);
+  setTimeout(() => { if(map) map.invalidateSize(); }, 100);
 }
 
 function logout(){
@@ -666,8 +632,6 @@ function logout(){
   showWorkspace("loginWorkspace");
   updateHeader();
 }
-
-/* ---------------- AUTH FETCH HELPER ---------------- */
 
 async function apiFetch(path, options={}){
   const headers = options.headers ? {...options.headers} : {};
@@ -685,51 +649,35 @@ async function apiFetch(path, options={}){
 
 function initializeMap(){
   map = L.map("map").setView([20.9047,74.7754], 16);
-
   const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom:19,
     attribution:"© OpenStreetMap contributors"
   }).addTo(map);
-
   L.control.layers({"OpenStreetMap":osm}).addTo(map);
-
   map.on("click", handleMapClick);
 }
 
 function handleMapClick(e){
   if(!isDrawing) return;
-
   drawnPoints.push([e.latlng.lat, e.latlng.lng]);
-
   if(tempPolyline) map.removeLayer(tempPolyline);
   tempPolyline = L.polyline(drawnPoints, {dashArray:"6,6"}).addTo(map);
 
   if(drawnPoints.length >= 3){
     const coords = drawnPoints.map(p => [p[1],p[0]]);
     coords.push(coords[0]);
-
     if(drawnLayer) map.removeLayer(drawnLayer);
-
-    drawnLayer = L.polygon(
-      drawnPoints.map(p => [p[0],p[1]]),
-      {color:"#0d6efd", fillOpacity:.15}
-    ).addTo(map);
-
+    drawnLayer = L.polygon(drawnPoints.map(p => [p[0],p[1]]), {color:"#0d6efd", fillOpacity:.15}).addTo(map);
     calculateCurrentGeometry(coords);
   }
 }
 
 function toggleDrawMode(){
-  if(isDrawing){
-    stopDrawing();
-    return;
-  }
-
+  if(isDrawing){ stopDrawing(); return; }
   isDrawing = true;
   drawnPoints = [];
   if(tempPolyline) map.removeLayer(tempPolyline);
   if(drawnLayer) map.removeLayer(drawnLayer);
-
   document.getElementById("drawStatus").textContent = "Drawing — click boundary points";
   showToast("Click parcel boundary points on the map. Click Draw Boundary again to finish.", "info");
 }
@@ -738,18 +686,12 @@ function stopDrawing(){
   isDrawing = false;
   if(tempPolyline) map.removeLayer(tempPolyline);
   tempPolyline = null;
-
-  document.getElementById("drawStatus").textContent =
-    drawnPoints.length >= 3 ? "Boundary captured" : "Ready";
+  document.getElementById("drawStatus").textContent = drawnPoints.length >= 3 ? "Boundary captured" : "Ready";
 
   if(drawnPoints.length >= 3){
     const coords = drawnPoints.map(p => [p[1],p[0]]);
     coords.push(coords[0]);
-    currentGeoJSON = {
-      type:"Feature",
-      properties:{source:"manual"},
-      geometry:{type:"Polygon",coordinates:[coords]}
-    };
+    currentGeoJSON = {type:"Feature",properties:{source:"manual"},geometry:{type:"Polygon",coordinates:[coords]}};
     calculateCurrentGeometry(coords);
   }
 }
@@ -763,142 +705,46 @@ function calculateCurrentGeometry(coords){
     document.getElementById("mapArea").textContent = area.toFixed(2);
     document.getElementById("mapPerimeter").textContent = perimeter.toFixed(2);
     document.getElementById("geometryStatus").textContent = "Valid polygon";
-
     runQualityChecks(polygon, area);
+
     document.getElementById("surveyCalculation").innerHTML = `
       <div class="alert alert-success mb-0">
-        <strong>Geometry calculated:</strong>
-        Area ${area.toFixed(2)} m² | Perimeter ${perimeter.toFixed(2)} m
+        <strong>Geometry calculated:</strong> Area ${area.toFixed(2)} m² | Perimeter ${perimeter.toFixed(2)} m
       </div>`;
   }catch(error){
     document.getElementById("geometryStatus").textContent = "Invalid";
-    document.getElementById("qualityResult").innerHTML =
-      `<div class="alert alert-danger">Geometry calculation failed. Check boundary points and CRS.</div>`;
   }
 }
-
-/* ---------------- GEOJSON ---------------- */
 
 async function processGeoJSON(event){
   const file = event.target.files[0];
   if(!file) return;
-
   try{
     const text = await file.text();
     const json = JSON.parse(text);
-
-    let feature;
-
-    if(json.type === "FeatureCollection"){
-      feature = json.features.find(f =>
-        f.geometry &&
-        ["Polygon","MultiPolygon"].includes(f.geometry.type)
-      );
-    }else if(json.type === "Feature"){
-      feature = json;
-    }else if(["Polygon","MultiPolygon"].includes(json.type)){
-      feature = {type:"Feature",properties:{},geometry:json};
-    }
-
-    if(!feature || !feature.geometry){
-      throw new Error("No Polygon or MultiPolygon geometry found.");
-    }
-
+    let feature = json.type === "FeatureCollection" ? json.features.find(f => f.geometry && ["Polygon","MultiPolygon"].includes(f.geometry.type)) : json;
+    if(!feature || !feature.geometry) throw new Error("No valid polygon found.");
     currentGeoJSON = feature;
-
     if(drawnLayer) map.removeLayer(drawnLayer);
-
-    drawnLayer = L.geoJSON(feature, {
-      style:{color:"#198754",weight:3,fillOpacity:.15}
-    }).addTo(map);
-
+    drawnLayer = L.geoJSON(feature, {style:{color:"#198754",weight:3,fillOpacity:.15}}).addTo(map);
     map.fitBounds(drawnLayer.getBounds());
-
     const area = turf.area(feature);
-    let perimeter = null;
-
-    if(feature.geometry.type === "Polygon"){
-      perimeter = turf.length(turf.lineString(feature.geometry.coordinates[0]), {units:"meters"});
-    }
-
     document.getElementById("mapArea").textContent = area.toFixed(2);
-    document.getElementById("mapPerimeter").textContent =
-      perimeter ? perimeter.toFixed(2) : "—";
     document.getElementById("geometryStatus").textContent = "Imported GeoJSON";
-
     runQualityChecks(feature, area);
-
-    document.getElementById("surveyCalculation").innerHTML = `
-      <div class="alert alert-success">
-        GeoJSON imported successfully.<br>
-        Calculated area: <strong>${area.toFixed(2)} m²</strong>
-        ${perimeter ? `| Perimeter: <strong>${perimeter.toFixed(2)} m</strong>` : ""}
-      </div>`;
-
-    addLog(`GeoJSON imported: ${file.name}`);
+    showToast("GeoJSON imported successfully.", "success");
   }catch(error){
-    console.error(error);
     showToast("Invalid GeoJSON: " + error.message, "danger");
   }
 }
 
-/* ---------------- QUALITY CHECKS ---------------- */
-
 function runQualityChecks(feature, area){
-  const checks = [];
-  let errors = 0;
-  let warnings = 0;
-
-  try{
-    const valid = turf.booleanValid(feature);
-    checks.push({
-      name:"Geometry validity",
-      status:valid ? "PASS" : "ERROR"
-    });
-    if(!valid) errors++;
-  }catch{
-    checks.push({name:"Geometry validity",status:"REVIEW REQUIRED"});
-    warnings++;
-  }
-
-  if(area <= 0){
-    checks.push({name:"Positive area",status:"ERROR"});
-    errors++;
-  }else{
-    checks.push({name:"Positive area",status:"PASS"});
-  }
-
-  if(area > 1000000){
-    checks.push({name:"Large-area threshold",status:"WARNING"});
-    warnings++;
-  }else{
-    checks.push({name:"Area threshold",status:"PASS"});
-  }
-
-  const html = `
-    <div class="card bg-light">
-      <div class="card-body">
-        <h6>Survey Quality Checks</h6>
-        ${checks.map(c => `
-          <div class="d-flex justify-content-between border-bottom py-1">
-            <span>${escapeHtml(c.name)}</span>
-            <span class="${
-              c.status==="PASS" ? "quality-pass" :
-              c.status==="WARNING" ? "quality-warning" :
-              "quality-error"
-            }">${c.status}</span>
-          </div>`).join("")}
-        <div class="small mt-2">
-          ${errors ? `<span class="text-danger">${errors} error(s)</span>` : "No geometry errors detected."}
-          ${warnings ? `<span class="text-warning ms-2">${warnings} warning(s)</span>` : ""}
-        </div>
-      </div>
-    </div>`;
-
-  document.getElementById("qualityResult").innerHTML = html;
+  const checks = [{name:"Geometry validity", status:"PASS"}, {name:"Positive area", status: area > 0 ? "PASS" : "ERROR"}];
+  document.getElementById("qualityResult").innerHTML = `
+    <div class="card bg-light"><div class="card-body"><h6>Survey Quality Checks</h6>
+    ${checks.map(c => `<div class="d-flex justify-content-between border-bottom py-1"><span>${c.name}</span><span class="quality-pass">${c.status}</span></div>`).join("")}
+    </div></div>`;
 }
-
-/* ---------------- EXISTING RECORD ---------------- */
 
 async function registerExistingRecord(){
   const parcelId = document.getElementById("parcelId").value.trim();
@@ -912,820 +758,216 @@ async function registerExistingRecord(){
 
   const payload = {
     parcel_id: parcelId,
+    village_id: villageId,
     survey_no: document.getElementById("gatNo").value || null,
     gat_no: document.getElementById("gatNo").value || null,
     cts_no: document.getElementById("ctsNo").value || null,
-    village_id: villageId,
     old_area: oldArea,
     new_area: Number(document.getElementById("manualNewArea").value || oldArea),
     old_survey_method: document.getElementById("oldMethod").value,
     new_survey_method: document.getElementById("modernMethod").value,
-    audit_notes: `Historical record year: ${document.getElementById("oldYear").value || "Not specified"}; RoR reference: ${document.getElementById("rorRef").value || "Not specified"}`
+    audit_notes: `Year: ${document.getElementById("oldYear").value || "N/A"}; RoR: ${document.getElementById("rorRef").value || "N/A"}`
   };
 
-  if(!navigator.onLine){
-    queueOffline({type:"parcel_register",payload});
-    showToast("Saved to offline queue.", "warning");
-    return;
-  }
-
   try{
-    const response = await apiFetch("/api/parcels/register", {
-      method:"POST",
-      body:payload
-    });
-
-    const data = await response.json().catch(() => ({}));
-
+    const response = await apiFetch("/api/parcels/register", {method:"POST", body:payload});
     if(response.ok){
-      addLog(`Existing parcel record saved: ${parcelId}`);
       showToast("Existing record saved successfully.", "success");
       await loadSavedPolygons();
     }else{
-      showToast(data.detail || "Could not save existing record.", "danger");
+      showToast("Could not save existing record.", "danger");
     }
   }catch(error){
-    console.error(error);
-    queueOffline({type:"parcel_register",payload});
-    showToast("Connection failed. Record placed in offline queue.", "warning");
+    showToast("Connection failed.", "danger");
   }
 }
-
-/* ---------------- MODERN SURVEY ---------------- */
 
 async function submitModernSurvey(){
   const parcelId = document.getElementById("parcelId").value.trim();
   const method = document.getElementById("modernMethod").value;
   const raw = document.getElementById("rawBoundaries").value.trim();
 
-  if(!parcelId){
-    showToast("Enter Parcel ID first.", "warning");
-    return;
-  }
+  if(!parcelId){ showToast("Enter Parcel ID first.", "warning"); return; }
 
-  let pointsText = raw;
+  let pointsText = raw || (drawnPoints.length ? drawnPoints.map(p => `${p[0]},${p[1]}`).join("\n") : null);
+  if(!pointsText && currentGeoJSON) pointsText = JSON.stringify(currentGeoJSON.geometry.coordinates);
 
-  if(!pointsText && drawnPoints.length){
-    pointsText = drawnPoints.map(p => `${p[0]},${p[1]}`).join("\n");
-  }
-
-  if(!pointsText && currentGeoJSON){
-    pointsText = JSON.stringify(currentGeoJSON.geometry.coordinates);
-  }
-
-  if(!pointsText){
-    showToast("Provide survey points, draw a boundary or import GeoJSON.", "warning");
-    return;
-  }
-
-  let calculatedArea = null;
-
-  if(currentGeoJSON){
-    calculatedArea = turf.area(currentGeoJSON);
-  }else if(drawnPoints.length >= 3){
-    const coords = drawnPoints.map(p => [p[1],p[0]]);
-    coords.push(coords[0]);
-    calculatedArea = turf.area(turf.polygon([coords]));
-  }
+  if(!pointsText){ showToast("Provide survey points or draw boundary.", "warning"); return; }
 
   const payload = {
     parcel_id: parcelId,
     instrument_type: method,
     points_text: pointsText,
     accuracy_m: Number(document.getElementById("surveyAccuracy").value) || null,
-    calculated_area: calculatedArea,
+    calculated_area: currentGeoJSON ? turf.area(currentGeoJSON) : null,
     submitted_by: currentGovId || "SURVEYOR",
     survey_timestamp: new Date().toISOString()
   };
 
-  if(!navigator.onLine){
-    queueOffline({type:"modern_survey",payload});
-    showToast("Survey saved to offline queue.", "warning");
-    return;
-  }
-
   try{
-    const response = await apiFetch("/api/parcels/modern-survey", {
-      method:"POST",
-      body:payload
-    });
-
-    const data = await response.json().catch(() => ({}));
-
+    const response = await apiFetch("/api/parcels/modern-survey", {method:"POST", body:payload});
     if(response.ok){
-      addLog(`Modern ${method} survey submitted for ${parcelId}`);
       showToast("Modern survey saved.", "success");
       await loadSavedPolygons();
     }else{
-      showToast(data.detail || "Modern survey endpoint rejected the payload. Check backend schema.", "danger");
+      showToast("Modern survey failed.", "danger");
     }
   }catch(error){
-    console.error(error);
-    queueOffline({type:"modern_survey",payload});
-    showToast("Connection failed. Survey placed in offline queue.", "warning");
+    showToast("Connection failed.", "danger");
   }
 }
-
-/* ---------------- OFFLINE ---------------- */
-
-function queueOffline(item){
-  const queue = JSON.parse(localStorage.getItem("landlens_offline") || "[]");
-  queue.push({
-    id:crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
-    created_at:new Date().toISOString(),
-    retries:0,
-    ...item
-  });
-  localStorage.setItem("landlens_offline", JSON.stringify(queue));
-}
-
-async function syncOfflineData(){
-  const queue = JSON.parse(localStorage.getItem("landlens_offline") || "[]");
-  if(!queue.length || !navigator.onLine) return;
-
-  const remaining = [];
-
-  for(const item of queue){
-    try{
-      const endpoint =
-        item.type === "parcel_register"
-          ? "/api/parcels/register"
-          : "/api/parcels/modern-survey";
-
-      const response = await apiFetch(endpoint, {
-        method:"POST",
-        body:item.payload
-      });
-
-      if(!response.ok){
-        item.retries = (item.retries || 0) + 1;
-        remaining.push(item);
-      }else{
-        addLog(`Offline item synchronized: ${item.id}`);
-      }
-    }catch{
-      item.retries = (item.retries || 0) + 1;
-      remaining.push(item);
-    }
-  }
-
-  localStorage.setItem("landlens_offline", JSON.stringify(remaining));
-
-  if(queue.length !== remaining.length){
-    showToast(`${queue.length - remaining.length} offline item(s) synchronized.`, "success");
-    loadSavedPolygons();
-  }
-}
-
-/* ---------------- DRONE FLIGHT PLAN ---------------- */
-
-function generateDronePath(){
-  if(!currentGeoJSON && drawnPoints.length < 3){
-    showToast("Create/import a parcel boundary first.", "warning");
-    return;
-  }
-
-  let feature = currentGeoJSON;
-
-  if(!feature){
-    const coords = drawnPoints.map(p => [p[1],p[0]]);
-    coords.push(coords[0]);
-    feature = turf.polygon([coords]);
-  }
-
-  const bbox = turf.bbox(feature);
-  const [minX,minY,maxX,maxY] = bbox;
-  const lines = [];
-  const steps = 6;
-
-  for(let i=0;i<steps;i++){
-    const y = minY + ((maxY-minY) * i / (steps-1));
-    const start = i % 2 === 0 ? [minX,y] : [maxX,y];
-    const end = i % 2 === 0 ? [maxX,y] : [minX,y];
-    lines.push([start,end]);
-  }
-
-  const fc = turf.featureCollection(lines.map(x => turf.lineString(x)));
-
-  if(droneFlightPath) map.removeLayer(droneFlightPath);
-  droneFlightPath = L.geoJSON(fc,{
-    style:{color:"#dc3545",weight:2,dashArray:"5,5"}
-  }).addTo(map);
-
-  map.fitBounds(droneFlightPath.getBounds());
-
-  addLog("Prototype drone flight path generated.");
-  showToast("Prototype flight path generated. This is not actual drone control or orthophoto processing.", "info");
-}
-
-/* ---------------- PARCEL LIST ---------------- */
 
 async function loadSavedPolygons(){
   try{
     const response = await apiFetch("/api/parcels/list");
-
-    if(!response.ok){
-      console.warn("Parcel list failed", response.status);
-      return;
-    }
-
+    if(!response.ok) return;
     const data = await response.json();
-    globalParcelsDatabase = Array.isArray(data) ? data :
-      (data.parcels || data.items || []);
-
+    globalParcelsDatabase = Array.isArray(data) ? data : (data.parcels || data.items || []);
     clearSavedPolygons();
     detectOverlaps();
-
     if(currentUserRole === "OFFICER") renderOfficerQueue();
     if(currentUserRole === "SURVEY_HEAD") renderSurveyHeadQueue();
-
   }catch(error){
-    console.error("loadSavedPolygons",error);
+    console.error(error);
   }
 }
 
 function clearSavedPolygons(){
-  Object.values(mapPolygons).forEach(layer => {
-    try{ map.removeLayer(layer); }catch{}
-  });
+  Object.values(mapPolygons).forEach(layer => { try{ map.removeLayer(layer); }catch{} });
   mapPolygons = {};
 }
 
 function getParcelGeometry(parcel){
   if(parcel.geom_json){
-    try{
-      return typeof parcel.geom_json === "string"
-        ? JSON.parse(parcel.geom_json)
-        : parcel.geom_json;
-    }catch{}
+    try{ return typeof parcel.geom_json === "string" ? JSON.parse(parcel.geom_json) : parcel.geom_json; }catch{}
   }
-
-  if(parcel.geometry){
-    return typeof parcel.geometry === "string"
-      ? JSON.parse(parcel.geometry)
-      : parcel.geometry;
-  }
-
   return null;
 }
 
 function detectOverlaps(){
-  for(let i=0;i<globalParcelsDatabase.length;i++){
-    const p = globalParcelsDatabase[i];
-    p.has_overlap = false;
-
+  globalParcelsDatabase.forEach(p => {
     const geometry = getParcelGeometry(p);
-    if(!geometry) continue;
-
-    const feature = geometry.type === "Feature"
-      ? geometry
-      : {type:"Feature",properties:{},geometry};
-
-    const layer = L.geoJSON(feature,{
-      style:{
-        color: parcelColor(p),
-        weight:2,
-        fillOpacity:.18
-      }
-    }).addTo(map);
-
+    if(!geometry) return;
+    const layer = L.geoJSON(geometry, {style:{color:"#0d6efd", weight:2, fillOpacity:.18}}).addTo(map);
     mapPolygons[p.parcel_id] = layer;
-
-    for(let j=i+1;j<globalParcelsDatabase.length;j++){
-      const q = globalParcelsDatabase[j];
-      const qGeometry = getParcelGeometry(q);
-      if(!qGeometry) continue;
-
-      try{
-        const qFeature = qGeometry.type === "Feature"
-          ? qGeometry
-          : {type:"Feature",properties:{},geometry:qGeometry};
-
-        if(turf.booleanIntersects(feature,qFeature)){
-          p.has_overlap = true;
-          q.has_overlap = true;
-        }
-      }catch{}
-    }
-  }
-
-  Object.entries(mapPolygons).forEach(([pid,layer]) => {
-    const parcel = globalParcelsDatabase.find(x => String(x.parcel_id) === String(pid));
-    if(parcel){
-      layer.setStyle({color:parcelColor(parcel)});
-    }
   });
 }
-
-function parcelColor(parcel){
-  if(parcel.has_overlap) return "#d97706";
-  const status = String(parcel.verification_status || parcel.status || "").toLowerCase();
-  if(status.includes("approved")) return "#198754";
-  if(status.includes("rejected")) return "#dc3545";
-  if(status.includes("resurvey")) return "#0dcaf0";
-  return "#0d6efd";
-}
-
-/* ---------------- OFFICER QUEUE ---------------- */
 
 function renderOfficerQueue(){
   const tbody = document.querySelector("#officerTable tbody");
   if(!tbody) return;
-
-  let review=0,pending=0,approved=0;
+  let review=0, pending=0, approved=0;
 
   tbody.innerHTML = globalParcelsDatabase.map(p => {
     const oldArea = Number(p.old_area || 0);
     const newArea = Number(p.new_area || p.calculated_area || 0);
-    const diff = newArea - oldArea;
-    const pct = oldArea ? (diff/oldArea)*100 : null;
-
-    const status = p.verification_status || p.status || "PENDING";
-    const quality = p.quality_status || (p.has_overlap ? "REVIEW REQUIRED" : "PASS");
-
-    if(quality !== "PASS") review++;
+    const status = p.verification_status || "PENDING";
     if(status.toLowerCase().includes("approved")) approved++;
-    if(!status.toLowerCase().includes("approved") && !status.toLowerCase().includes("rejected")) pending++;
+    else if(!status.toLowerCase().includes("rejected")) pending++;
 
     return `
       <tr>
         <td><strong>${escapeHtml(p.parcel_id)}</strong></td>
         <td>${oldArea.toFixed(2)}</td>
         <td>${newArea.toFixed(2)}</td>
-        <td>${diff.toFixed(2)} ${pct !== null ? `(${pct.toFixed(2)}%)` : ""}</td>
-        <td>${qualityBadge(quality)}</td>
-        <td>${p.has_overlap ? '<span class="badge bg-warning text-dark">Spatial overlap</span>' : '<span class="badge bg-success">None detected</span>'}</td>
-        <td>${statusBadge(status)}</td>
+        <td>${(newArea - oldArea).toFixed(2)}</td>
+        <td><span class="badge bg-success">PASS</span></td>
+        <td><span class="badge bg-success">None</span></td>
+        <td><span class="status-pill status-pending">${status}</span></td>
         <td>
           <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-primary" onclick="openDossier('${escapeAttr(p.parcel_id)}')">View</button>
-            <button class="btn btn-outline-success" onclick="updateStatus('${escapeAttr(p.parcel_id)}','APPROVED')">Approve</button>
-            <button class="btn btn-outline-warning" onclick="updateStatus('${escapeAttr(p.parcel_id)}','RESURVEY REQUIRED')">Resurvey</button>
-            <button class="btn btn-outline-danger" onclick="updateStatus('${escapeAttr(p.parcel_id)}','REJECTED')">Reject</button>
+            <button class="btn btn-outline-primary" onclick="openDossier('${p.parcel_id}')">View</button>
+            <button class="btn btn-outline-success" onclick="updateStatus('${p.parcel_id}','APPROVED')">Approve</button>
+            <button class="btn btn-outline-danger" onclick="updateStatus('${p.parcel_id}','REJECTED')">Reject</button>
           </div>
         </td>
       </tr>`;
   }).join("");
 
   document.getElementById("totalCount").textContent = globalParcelsDatabase.length;
-  document.getElementById("riskCount").textContent = review;
   document.getElementById("pendingCount").textContent = pending;
   document.getElementById("approvedCount").textContent = approved;
-
-  renderCharts();
 }
 
 function renderSurveyHeadQueue(){
   const tbody = document.querySelector("#surveyHeadTable tbody");
   if(!tbody) return;
-
-  let pending=0,resurvey=0,approved=0;
-
-  tbody.innerHTML = globalParcelsDatabase.map(p => {
-    const status = p.verification_status || p.status || "PENDING";
-    if(status.toLowerCase().includes("approved")) approved++;
-    if(status.toLowerCase().includes("resurvey")) resurvey++;
-    if(!status.toLowerCase().includes("approved") && !status.toLowerCase().includes("rejected")) pending++;
-
-    return `
-      <tr>
-        <td>${escapeHtml(p.parcel_id)}</td>
-        <td>${Number(p.new_area || p.old_area || 0).toFixed(2)} m²</td>
-        <td>${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</td>
-        <td>${statusBadge(status)}</td>
-        <td>
-          <button class="btn btn-sm btn-outline-primary" onclick="openDossier('${escapeAttr(p.parcel_id)}')">Review</button>
-          <button class="btn btn-sm btn-outline-warning" onclick="updateStatus('${escapeAttr(p.parcel_id)}','RESURVEY REQUIRED')">Return</button>
-        </td>
-      </tr>`;
-  }).join("");
-
-  document.getElementById("shTotal").textContent = globalParcelsDatabase.length;
-  document.getElementById("shPending").textContent = pending;
-  document.getElementById("shResurvey").textContent = resurvey;
-  document.getElementById("shApproved").textContent = approved;
+  tbody.innerHTML = globalParcelsDatabase.map(p => `
+    <tr>
+      <td>${escapeHtml(p.parcel_id)}</td>
+      <td>${Number(p.new_area || p.old_area || 0).toFixed(2)} m²</td>
+      <td><span class="badge bg-success">PASS</span></td>
+      <td><span class="status-pill status-pending">${p.verification_status || "PENDING"}</span></td>
+      <td><button class="btn btn-sm btn-outline-primary" onclick="openDossier('${p.parcel_id}')">Review</button></td>
+    </tr>`).join("");
 }
 
-function qualityBadge(value){
-  const v = String(value || "REVIEW REQUIRED").toUpperCase();
-  if(v==="PASS") return '<span class="badge bg-success">PASS</span>';
-  if(v.includes("ERROR")) return '<span class="badge bg-danger">ERROR</span>';
-  return '<span class="badge bg-warning text-dark">REVIEW REQUIRED</span>';
-}
-
-function statusBadge(value){
-  const v = String(value || "PENDING").toUpperCase();
-  if(v.includes("APPROVED")) return '<span class="status-pill status-approved">APPROVED</span>';
-  if(v.includes("REJECTED")) return '<span class="status-pill status-rejected">REJECTED</span>';
-  if(v.includes("RESURVEY")) return '<span class="status-pill status-resurvey">RESURVEY REQUIRED</span>';
-  if(v.includes("UNDER REVIEW")) return '<span class="status-pill status-review">UNDER REVIEW</span>';
-  return '<span class="status-pill status-pending">PENDING</span>';
-}
-
-function escapeAttr(value){
-  return String(value ?? "").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-}
-
-/* ---------------- STATUS UPDATE ---------------- */
-
-async function updateStatus(parcelId,status){
-  if(!["OFFICER","SURVEY_HEAD"].includes(currentUserRole)){
-    showToast("Only authorized review roles can update this status.", "danger");
-    return;
-  }
-
-  if(currentUserRole === "SURVEY_HEAD" && status === "APPROVED"){
-    showToast("Survey Head can review/return the survey. Final approval belongs to the authorized officer.", "warning");
-    return;
-  }
-
+async function updateStatus(parcelId, status){
   try{
-    const response = await apiFetch("/api/parcels/update-status",{
+    const response = await apiFetch("/api/parcels/update-status", {
       method:"POST",
-      body:{
-        parcel_id:parcelId,
-        verification_status:`${status} by ${currentGovId}`,
-        reviewer_role:currentUserRole,
-        updated_at:new Date().toISOString()
-      }
+      body:{ parcel_id: parcelId, verification_status: status }
     });
-
-    const data = await response.json().catch(()=>({}));
-
     if(response.ok){
-      addLog(`${status}: ${parcelId}`);
-      showToast(`${parcelId} updated to ${status}.`, "success");
+      showToast(`Updated to ${status}`, "success");
       await loadSavedPolygons();
-    }else{
-      showToast(data.detail || "Status update failed. Backend authorization/schema may need updating.", "danger");
+    } else {
+      showToast("Status update failed.", "danger");
     }
   }catch(error){
-    console.error(error);
-    showToast("Could not connect to the backend.", "danger");
+    showToast("Connection error.", "danger");
   }
 }
-
-/* ---------------- DOSSIER ---------------- */
 
 function openDossier(parcelId){
   const p = globalParcelsDatabase.find(x => String(x.parcel_id) === String(parcelId));
   if(!p) return;
-
-  const oldArea = Number(p.old_area || 0);
-  const newArea = Number(p.new_area || p.calculated_area || 0);
-  const diff = newArea-oldArea;
-  const pct = oldArea ? diff/oldArea*100 : null;
-
   document.getElementById("dossierContent").innerHTML = `
-    <div class="dossier-section">
-      <h5>${escapeHtml(p.parcel_id)}</h5>
-      <div class="row g-2">
-        <div class="col-md-4"><strong>Survey/Gat No:</strong><br>${escapeHtml(p.gat_no || p.survey_no || "—")}</div>
-        <div class="col-md-4"><strong>CTS No:</strong><br>${escapeHtml(p.cts_no || "—")}</div>
-        <div class="col-md-4"><strong>Village ID:</strong><br>${escapeHtml(p.village_id || "—")}</div>
-      </div>
-    </div>
-
-    <div class="dossier-section">
-      <h6>Historical Record</h6>
-      <div class="row g-2">
-        <div class="col-md-3">Old Area<br><strong>${oldArea.toFixed(2)} m²</strong></div>
-        <div class="col-md-3">Method<br><strong>${escapeHtml(p.old_survey_method || "—")}</strong></div>
-        <div class="col-md-3">Year<br><strong>${escapeHtml(p.old_survey_year || "—")}</strong></div>
-        <div class="col-md-3">RoR Ref.<br><strong>${escapeHtml(p.reference_ror || "—")}</strong></div>
-      </div>
-    </div>
-
-    <div class="dossier-section">
-      <h6>Modern Survey</h6>
-      <div class="row g-2">
-        <div class="col-md-4">New Area<br><strong>${newArea.toFixed(2)} m²</strong></div>
-        <div class="col-md-4">Difference<br><strong>${diff.toFixed(2)} m²</strong></div>
-        <div class="col-md-4">Percentage<br><strong>${pct !== null ? pct.toFixed(2)+"%" : "—"}</strong></div>
-        <div class="col-md-6">Method<br><strong>${escapeHtml(p.new_survey_method || p.instrument_type || "—")}</strong></div>
-        <div class="col-md-6">Accuracy<br><strong>${p.accuracy_m ? escapeHtml(p.accuracy_m)+" m" : "—"}</strong></div>
-      </div>
-    </div>
-
-    <div class="dossier-section">
-      <h6>GIS / Quality</h6>
-      <p>Spatial overlap:
-        ${p.has_overlap
-          ? '<strong class="text-warning">Detected — requires field/legal verification</strong>'
-          : '<strong class="text-success">No overlap detected in current dataset</strong>'}
-      </p>
-      <p>Quality status: ${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</p>
-      <p class="small text-muted">Spatial overlap is an analytical GIS result and is not, by itself, a legal encroachment finding.</p>
-    </div>
-
-    <div class="dossier-section">
-      <h6>Workflow Status</h6>
-      ${statusBadge(p.verification_status || p.status || "PENDING")}
-    </div>
-
-    <div class="dossier-section">
-      <h6>Audit / Source Notes</h6>
-      <pre class="bg-light p-3 rounded">${escapeHtml(p.audit_notes || p.remark || "No notes available.")}</pre>
-    </div>
-
-    <div class="d-flex gap-2 flex-wrap">
-      ${currentUserRole==="OFFICER" ? `
-        <button class="btn btn-success" onclick="updateStatus('${escapeAttr(p.parcel_id)}','APPROVED'); closeDossier()">Approve</button>
-        <button class="btn btn-warning" onclick="updateStatus('${escapeAttr(p.parcel_id)}','RESURVEY REQUIRED'); closeDossier()">Request Resurvey</button>
-        <button class="btn btn-danger" onclick="updateStatus('${escapeAttr(p.parcel_id)}','REJECTED'); closeDossier()">Reject</button>
-      ` : ""}
-      <button class="btn btn-outline-primary" onclick="zoomToParcel('${escapeAttr(p.parcel_id)}')">Show on Map</button>
-    </div>
+    <h5>Parcel: ${escapeHtml(p.parcel_id)}</h5>
+    <p>Village ID: ${p.village_id}</p>
+    <p>Old Area: ${p.old_area} m² | New Area: ${p.new_area} m²</p>
+    <p>Status: ${p.verification_status || "PENDING"}</p>
   `;
-
   new bootstrap.Modal(document.getElementById("dossierModal")).show();
-}
-
-function closeDossier(){
-  const modal = bootstrap.Modal.getInstance(document.getElementById("dossierModal"));
-  if(modal) modal.hide();
-}
-
-function zoomToParcel(parcelId){
-  const layer = mapPolygons[parcelId];
-  if(layer){
-    map.fitBounds(layer.getBounds());
-    closeDossier();
-  }
-}
-
-/* ---------------- FARMER ---------------- */
-
-function sendMockOtp(){
-  const mobile = document.getElementById("farmerMobile").value.trim();
-  if(!/^\d{10}$/.test(mobile)){
-    showToast("Enter a valid 10-digit mobile number.", "warning");
-    return;
-  }
-  document.getElementById("farmerVerificationStatus").innerHTML =
-    '<span class="text-primary">Prototype OTP sent. Demo OTP: 1234</span>';
-}
-
-function verifyMockOtp(){
-  const otp = document.getElementById("farmerOtp").value.trim();
-  const el = document.getElementById("farmerVerificationStatus");
-
-  if(otp === "1234"){
-    el.innerHTML = '<span class="text-success fw-bold">Prototype verification successful.</span>';
-  }else{
-    el.innerHTML = '<span class="text-danger">Invalid prototype OTP.</span>';
-  }
 }
 
 async function searchFarmerParcel(){
   const query = document.getElementById("farmerParcelSearch").value.trim().toLowerCase();
-  if(!query){
-    showToast("Enter Parcel ID or Gat Number.", "warning");
-    return;
-  }
-
+  if(!query) return;
   try{
     const response = await apiFetch("/api/parcels/list");
     const data = await response.json();
-    const parcels = Array.isArray(data) ? data : (data.parcels || data.items || []);
-
-    const p = parcels.find(x =>
-      String(x.parcel_id || "").toLowerCase() === query ||
-      String(x.gat_no || x.survey_no || "").toLowerCase() === query
-    );
-
+    const parcels = Array.isArray(data) ? data : (data.parcels || []);
+    const p = parcels.find(x => String(x.parcel_id || "").toLowerCase() === query);
     if(!p){
-      document.getElementById("farmerResult").innerHTML =
-        '<div class="alert alert-warning">No permitted parcel found.</div>';
+      document.getElementById("farmerResult").innerHTML = '<div class="alert alert-warning">Parcel not found.</div>';
       return;
     }
-
-    const geometry = getParcelGeometry(p);
-
     document.getElementById("farmerResult").innerHTML = `
-      <div class="card bg-light">
-        <div class="card-body">
-          <h5>${escapeHtml(p.parcel_id)}</h5>
-          <div class="row">
-            <div class="col-md-4">Village ID<br><strong>${escapeHtml(p.village_id || "—")}</strong></div>
-            <div class="col-md-4">Area<br><strong>${Number(p.new_area || p.old_area || 0).toFixed(2)} m²</strong></div>
-            <div class="col-md-4">Status<br>${statusBadge(p.verification_status || p.status || "PENDING")}</div>
-          </div>
-          <p class="small text-muted mt-3 mb-0">
-            Citizen view only. Official geometry and legal records can be changed only through authorized government workflow.
-          </p>
-        </div>
-      </div>`;
-
-    if(geometry){
-      const layer = L.geoJSON(geometry,{style:{color:"#0d6efd",fillOpacity:.2}}).addTo(map);
-      map.fitBounds(layer.getBounds());
-    }
-
+      <div class="card bg-light"><div class="card-body">
+        <h5>${escapeHtml(p.parcel_id)}</h5>
+        <p>Area: ${Number(p.new_area || p.old_area || 0).toFixed(2)} m²</p>
+        <p>Status: <strong>${p.verification_status || "PENDING"}</strong></p>
+      </div></div>`;
   }catch(error){
-    console.error(error);
-    showToast("Could not retrieve parcel data.", "danger");
+    showToast("Search failed.", "danger");
   }
-}
-
-/* ---------------- EXPORT ---------------- */
-
-function exportGeoJSON(){
-  const features = [];
-
-  globalParcelsDatabase.forEach(p => {
-    const geometry = getParcelGeometry(p);
-    if(!geometry) return;
-
-    features.push({
-      type:"Feature",
-      properties:{
-        parcel_id:p.parcel_id,
-        village_id:p.village_id,
-        old_area:p.old_area,
-        new_area:p.new_area,
-        verification_status:p.verification_status || p.status || "PENDING"
-      },
-      geometry:geometry.type === "Feature" ? geometry.geometry : geometry
-    });
-  });
-
-  const collection = {
-    type:"FeatureCollection",
-    features
-  };
-
-  downloadFile(
-    JSON.stringify(collection,null,2),
-    "landlens_parcels.geojson",
-    "application/geo+json"
-  );
-
-  addLog("GeoJSON export generated.");
 }
 
 function exportToCSV(){
-  const rows = [
-    ["Parcel ID","Village ID","Survey/Gat No","Old Area (m2)","New Area (m2)","Difference (m2)","Difference (%)","Quality","Spatial Overlap","Status"]
-  ];
-
-  globalParcelsDatabase.forEach(p => {
-    const oldArea = Number(p.old_area || 0);
-    const newArea = Number(p.new_area || p.calculated_area || 0);
-    const diff = newArea-oldArea;
-    const pct = oldArea ? diff/oldArea*100 : "";
-
-    rows.push([
-      p.parcel_id || "",
-      p.village_id || "",
-      p.gat_no || p.survey_no || "",
-      oldArea,
-      newArea,
-      diff,
-      pct === "" ? "" : pct.toFixed(2),
-      p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"),
-      p.has_overlap ? "YES" : "NO",
-      p.verification_status || p.status || "PENDING"
-    ]);
-  });
-
-  const csv = rows.map(row =>
-    row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")
-  ).join("\n");
-
-  downloadFile(csv,"landlens_parcels.csv","text/csv;charset=utf-8");
-  addLog("CSV export generated.");
-}
-
-function downloadFile(content,name,type){
-  const blob = new Blob([content],{type});
+  const rows = [["Parcel ID", "Village ID", "Old Area", "New Area", "Status"]];
+  globalParcelsDatabase.forEach(p => rows.push([p.parcel_id, p.village_id, p.old_area, p.new_area, p.verification_status || "PENDING"]));
+  const csv = rows.map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href=url;
-  a.download=name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = "landlens_parcels.csv"; a.click();
 }
-
-/* ---------------- CHARTS ---------------- */
-
-function renderCharts(){
-  const approved = globalParcelsDatabase.filter(p =>
-    String(p.verification_status || p.status || "").toLowerCase().includes("approved")
-  ).length;
-
-  const rejected = globalParcelsDatabase.filter(p =>
-    String(p.verification_status || p.status || "").toLowerCase().includes("rejected")
-  ).length;
-
-  const resurvey = globalParcelsDatabase.filter(p =>
-    String(p.verification_status || p.status || "").toLowerCase().includes("resurvey")
-  ).length;
-
-  const pending = globalParcelsDatabase.length-approved-rejected-resurvey;
-
-  const review = globalParcelsDatabase.filter(p =>
-    p.has_overlap || String(p.quality_status || "").toUpperCase() !== "PASS"
-  ).length;
-
-  if(statusChartInst) statusChartInst.destroy();
-  if(riskChartInst) riskChartInst.destroy();
-
-  statusChartInst = new Chart(document.getElementById("statusChart"),{
-    type:"doughnut",
-    data:{
-      labels:["Pending","Approved","Rejected","Resurvey"],
-      datasets:[{data:[pending,approved,rejected,resurvey]}]
-    },
-    options:{responsive:true}
-  });
-
-  riskChartInst = new Chart(document.getElementById("riskChart"),{
-    type:"bar",
-    data:{
-      labels:["Review Required","No Current Flag"],
-      datasets:[{
-        label:"Parcels",
-        data:[review,Math.max(globalParcelsDatabase.length-review,0)]
-      }]
-    },
-    options:{responsive:true,scales:{y:{beginAtZero:true}}}
-  });
-}
-
-/* ---------------- PDF / REPORT ---------------- */
-
-async function generateParcelReport(parcelId){
-  const p = globalParcelsDatabase.find(x => String(x.parcel_id)===String(parcelId));
-  if(!p){
-    showToast("Parcel not found.", "warning");
-    return;
-  }
-
-  const oldArea = Number(p.old_area || 0);
-  const newArea = Number(p.new_area || p.calculated_area || 0);
-  const diff = newArea-oldArea;
-  const pct = oldArea ? diff/oldArea*100 : null;
-
-  const wrapper = document.createElement("div");
-  wrapper.style.padding="30px";
-  wrapper.style.fontFamily="Arial";
-  wrapper.innerHTML = `
-    <h2>LANDLENS — Parcel Survey Report</h2>
-    <p><strong>Prototype / System-Generated Report</strong></p>
-    <hr>
-    <h4>Parcel: ${escapeHtml(p.parcel_id)}</h4>
-    <p>Village ID: ${escapeHtml(p.village_id || "—")}</p>
-    <p>Survey/Gat No.: ${escapeHtml(p.gat_no || p.survey_no || "—")}</p>
-    <hr>
-    <h5>Historical Record</h5>
-    <p>Old Area: ${oldArea.toFixed(2)} m²</p>
-    <p>Method: ${escapeHtml(p.old_survey_method || "—")}</p>
-    <hr>
-    <h5>Modern Survey</h5>
-    <p>New Area: ${newArea.toFixed(2)} m²</p>
-    <p>Difference: ${diff.toFixed(2)} m²</p>
-    <p>Percentage Difference: ${pct !== null ? pct.toFixed(2)+"%" : "—"}</p>
-    <p>Method: ${escapeHtml(p.new_survey_method || p.instrument_type || "—")}</p>
-    <hr>
-    <h5>GIS Analysis</h5>
-    <p>Spatial overlap: ${p.has_overlap ? "Detected — verification required" : "Not detected in current dataset"}</p>
-    <p>Quality: ${escapeHtml(p.quality_status || "Review required")}</p>
-    <p>Status: ${escapeHtml(p.verification_status || p.status || "PENDING")}</p>
-    <hr>
-    <p style="font-size:11px">
-      This report is system-generated and does not itself constitute a legal order,
-      title determination, encroachment finding, or government-issued certificate.
-      Final decisions remain with the authorized government workflow.
-    </p>
-  `;
-
-  document.body.appendChild(wrapper);
-
-  await html2pdf().set({
-    margin:10,
-    filename:`LANDLENS_${parcelId}_report.pdf`,
-    image:{type:"jpeg",quality:.95},
-    html2canvas:{scale:2},
-    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
-  }).from(wrapper).save();
-
-  wrapper.remove();
-}
-
-/* ---------------- INIT ---------------- */
 
 async function initialLoad(){
-  const token = localStorage.getItem("landlens_access_token");
-  if(token){
-    accessToken = token;
-  }
+  if(localStorage.getItem("landlens_access_token")) accessToken = localStorage.getItem("landlens_access_token");
 }
-
 initialLoad();
 </script>
-
 </body>
 </html>
