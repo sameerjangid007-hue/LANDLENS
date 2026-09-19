@@ -34,7 +34,6 @@ body{background:var(--ll-bg);color:var(--ll-text);font-family:Inter,system-ui,-a
 .card-header{background:#fff;border-bottom:1px solid var(--ll-border);font-weight:700}
 .workspace{display:none}
 .workspace.active{display:block}
-.role-badge{font-size:.78rem}
 #map{height:470px;border-radius:12px;border:1px solid var(--ll-border)}
 .small-muted{font-size:.82rem;color:var(--ll-muted)}
 .metric{font-size:1.55rem;font-weight:800}
@@ -43,22 +42,16 @@ body{background:var(--ll-bg);color:var(--ll-text);font-family:Inter,system-ui,-a
 .status-approved{background:#d1e7dd;color:#0f5132}
 .status-rejected{background:#f8d7da;color:#842029}
 .status-resurvey{background:#cff4fc;color:#055160}
-.status-review{background:#e2e3e5;color:#41464b}
 .quality-pass{color:var(--ll-success);font-weight:700}
-.quality-warning{color:var(--ll-warning);font-weight:700}
-.quality-error{color:var(--ll-danger);font-weight:700}
 #activityLog{max-height:240px;overflow:auto}
 .table td,.table th{vertical-align:middle}
 .drop-zone{border:2px dashed #b9c7d5;border-radius:12px;padding:25px;text-align:center;background:#fafcfe}
-.drop-zone:hover{background:#f2f7fb}
 #toastContainer{position:fixed;right:18px;bottom:18px;z-index:3000}
 .sync-indicator{font-size:.78rem}
 #offlineBanner{display:none}
 .dossier-section{border-bottom:1px solid var(--ll-border);padding-bottom:12px;margin-bottom:12px}
 pre{white-space:pre-wrap;word-break:break-word}
-@media(max-width:768px){
-  #map{height:360px}
-}
+@media(max-width:768px){#map{height:360px}}
 </style>
 </head>
 
@@ -95,33 +88,26 @@ pre{white-space:pre-wrap;word-break:break-word}
 
           <div class="alert alert-info small">
             <i class="bi bi-info-circle"></i>
-            <strong>Quick Access IDs:</strong><br>
-            • Surveyor: <code>surveyor</code> (or GOV-SURV)<br>
-            • Officer: <code>officer</code> (or GOV-OFFICER)<br>
-            • Admin: <code>admin</code>
+            <strong>Demo IDs:</strong> Surveyor: <code>surveyor</code> | Officer: <code>officer</code> | Admin: <code>admin</code>
           </div>
 
-          <label class="form-label">Select Role</label>
-          <select id="loginRole" class="form-select mb-3">
-            <option value="FARMER">Farmer / Citizen</option>
-            <option value="SURVEYOR">Surveyor</option>
+          <label class="form-label">Select Portal / Role</label>
+          <select id="loginRole" class="form-select mb-3" onchange="handleRoleChange()">
+            <option value="FARMER">Farmer / Citizen Portal (One-Click Entry)</option>
+            <option value="SURVEYOR">Surveyor Workspace</option>
             <option value="SURVEY_HEAD">Survey Head / Supervisor</option>
-            <option value="OFFICER">Authorized Officer</option>
+            <option value="OFFICER">Authorized Officer Command Centre</option>
             <option value="ADMIN">Administrator</option>
           </select>
 
-          <div id="credentialBox" class="mb-3">
+          <div id="credentialBox" class="mb-3" style="display:none;">
             <label class="form-label">Username / User ID</label>
             <input id="loginUser" class="form-control" placeholder="e.g. surveyor, officer, admin">
           </div>
 
-          <button class="btn btn-primary w-100" onclick="login()">
-            <i class="bi bi-box-arrow-in-right"></i> Sign In
+          <button id="loginBtn" class="btn btn-success w-100" onclick="login()">
+            <i class="bi bi-door-open"></i> Enter Citizen Portal Instantly
           </button>
-
-          <div class="small text-muted mt-3">
-            Farmer/Citizen access is shown as a prototype flow.
-          </div>
         </div>
       </div>
     </div>
@@ -142,11 +128,10 @@ pre{white-space:pre-wrap;word-break:break-word}
       <div class="card h-100">
         <div class="card-header"><i class="bi bi-person-check"></i> Mobile Verification</div>
         <div class="card-body">
-          <div class="alert alert-warning small">Prototype authentication simulation.</div>
           <label class="form-label">Registered Mobile Number</label>
           <input id="farmerMobile" class="form-control mb-2" maxlength="10" placeholder="10-digit mobile">
           <button class="btn btn-outline-primary btn-sm" onclick="sendMockOtp()">Send OTP</button>
-          <input id="farmerOtp" class="form-control mt-2" placeholder="Prototype OTP (1234)">
+          <input id="farmerOtp" class="form-control mt-2" placeholder="OTP (Demo: 1234)">
           <button class="btn btn-primary btn-sm mt-2" onclick="verifyMockOtp()">Verify</button>
           <div id="farmerVerificationStatus" class="small mt-2"></div>
         </div>
@@ -188,74 +173,37 @@ pre{white-space:pre-wrap;word-break:break-word}
         <div class="card-header"><i class="bi bi-file-earmark-text"></i> Existing Land Record</div>
         <div class="card-body">
           <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label">Parcel ID *</label>
-              <input id="parcelId" class="form-control" placeholder="PIM-001">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Village ID *</label>
-              <input id="villageId" type="number" class="form-control" placeholder="2">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Survey / Gat No.</label>
-              <input id="gatNo" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">CTS No.</label>
-              <input id="ctsNo" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Old Area (m²) *</label>
-              <input id="oldArea" type="number" step="0.01" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Old Survey Year</label>
-              <input id="oldYear" type="number" class="form-control" placeholder="1985">
-            </div>
+            <div class="col-md-6"><label class="form-label">Parcel ID *</label><input id="parcelId" class="form-control" placeholder="PIM-001"></div>
+            <div class="col-md-6"><label class="form-label">Village ID *</label><input id="villageId" type="number" class="form-control" placeholder="2"></div>
+            <div class="col-md-6"><label class="form-label">Survey / Gat No.</label><input id="gatNo" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label">CTS No.</label><input id="ctsNo" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label">Old Area (m²) *</label><input id="oldArea" type="number" step="0.01" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label">Old Survey Year</label><input id="oldYear" type="number" class="form-control" placeholder="1985"></div>
             <div class="col-md-6">
               <label class="form-label">Old Survey Method</label>
-              <select id="oldMethod" class="form-select">
-                <option>Chain Survey</option>
-                <option>Plain Table</option>
-                <option>Other Historical Method</option>
-              </select>
+              <select id="oldMethod" class="form-select"><option>Chain Survey</option><option>Plain Table</option><option>Other</option></select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">Source / RoR Reference</label>
-              <input id="rorRef" class="form-control">
-            </div>
+            <div class="col-md-6"><label class="form-label">RoR Reference</label><input id="rorRef" class="form-control"></div>
           </div>
-
-          <button class="btn btn-primary mt-3 w-100" onclick="registerExistingRecord()">
-            <i class="bi bi-database-add"></i> Save Existing Record
-          </button>
+          <button class="btn btn-primary mt-3 w-100" onclick="registerExistingRecord()"><i class="bi bi-database-add"></i> Save Existing Record</button>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header"><i class="bi bi-broadcast-pin"></i> Modern Survey Capture</div>
         <div class="card-body">
-          <label class="form-label">Survey Method / Instrument</label>
+          <label class="form-label">Instrument Type</label>
           <select id="modernMethod" class="form-select mb-3">
             <option value="RTK GNSS">RTK / GNSS Rover</option>
             <option value="Total Station">Total Station</option>
             <option value="Drone / Orthophoto">Drone / Orthophoto</option>
           </select>
-
           <div class="row g-2 mb-3">
-            <div class="col-md-6">
-              <label class="form-label">New Surveyor Area</label>
-              <input id="manualNewArea" type="number" step="0.01" class="form-control" placeholder="Calculated geometry">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Accuracy (m)</label>
-              <input id="surveyAccuracy" type="number" step="0.001" class="form-control" placeholder="0.02">
-            </div>
+            <div class="col-md-6"><label class="form-label">New Area</label><input id="manualNewArea" type="number" step="0.01" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label">Accuracy (m)</label><input id="surveyAccuracy" type="number" step="0.001" class="form-control" value="0.02"></div>
           </div>
-
           <label class="form-label">Survey Observation Points</label>
-          <textarea id="rawBoundaries" class="form-control mb-3" rows="4" placeholder="lat,lng per line"></textarea>
-
+          <textarea id="rawBoundaries" class="form-control mb-3" rows="3" placeholder="lat,lng per line"></textarea>
           <div class="d-flex gap-2 flex-wrap">
             <button class="btn btn-outline-primary" onclick="toggleDrawMode()"><i class="bi bi-pencil-square"></i> Draw Boundary</button>
             <label class="btn btn-outline-secondary mb-0">
@@ -263,10 +211,7 @@ pre{white-space:pre-wrap;word-break:break-word}
               <input id="geojsonFile" type="file" accept=".geojson,.json" hidden onchange="processGeoJSON(event)">
             </label>
           </div>
-
-          <button class="btn btn-success mt-3 w-100" onclick="submitModernSurvey()">
-            <i class="bi bi-send-check"></i> Save & Submit Modern Survey
-          </button>
+          <button class="btn btn-success mt-3 w-100" onclick="submitModernSurvey()"><i class="bi bi-send-check"></i> Save & Submit Modern Survey</button>
           <div id="surveyCalculation" class="mt-3"></div>
         </div>
       </div>
@@ -285,7 +230,6 @@ pre{white-space:pre-wrap;word-break:break-word}
             <div class="col-md-4"><div class="card bg-light"><div class="card-body"><div class="small-muted">Perimeter</div><div id="mapPerimeter" class="metric">—</div><small>m</small></div></div></div>
             <div class="col-md-4"><div class="card bg-light"><div class="card-body"><div class="small-muted">Geometry</div><div id="geometryStatus" class="fw-bold">Not loaded</div></div></div></div>
           </div>
-          <div id="qualityResult" class="mt-3"></div>
         </div>
       </div>
     </div>
@@ -295,59 +239,29 @@ pre{white-space:pre-wrap;word-break:break-word}
 <!-- SURVEY HEAD -->
 <section id="surveyHeadWorkspace" class="workspace">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h3>Survey Head / Supervisor</h3>
-      <p class="text-muted mb-0">Assign, monitor and return surveys for correction.</p>
-    </div>
+    <div><h3>Survey Head / Supervisor</h3><p class="text-muted mb-0">Review and return surveys.</p></div>
     <span class="badge bg-info text-dark">SURVEY HEAD</span>
   </div>
-  <div class="card">
-    <div class="card-header">Survey Review Queue</div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover" id="surveyHeadTable">
-          <thead><tr><th>Parcel</th><th>Area</th><th>Quality</th><th>Status</th><th>Action</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <div class="card"><div class="card-body"><table class="table" id="surveyHeadTable"><thead><tr><th>Parcel</th><th>Area</th><th>Quality</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
 </section>
 
 <!-- OFFICER -->
 <section id="officerWorkspace" class="workspace">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h3>Officer Command Centre</h3>
-      <p class="text-muted mb-0">Review evidence and make official verification decisions.</p>
-    </div>
+    <div><h3>Officer Command Centre</h3><p class="text-muted mb-0">Review evidence and official verification.</p></div>
     <span class="badge bg-dark">AUTHORIZED OFFICER</span>
   </div>
-
   <div class="row g-3 mb-3">
     <div class="col-md-4"><div class="card"><div class="card-body"><div class="small-muted">Total Parcels</div><div id="totalCount" class="metric">0</div></div></div></div>
     <div class="col-md-4"><div class="card"><div class="card-body"><div class="small-muted">Pending Verification</div><div id="pendingCount" class="metric">0</div></div></div></div>
     <div class="col-md-4"><div class="card"><div class="card-body"><div class="small-muted">Approved</div><div id="approvedCount" class="metric">0</div></div></div></div>
   </div>
-
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-clipboard-check"></i> Audit / Verification Queue</span>
-      <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()">CSV Export</button>
-        <button class="btn btn-sm btn-outline-secondary" onclick="loadSavedPolygons()">Refresh</button>
-      </div>
+      <span>Audit / Verification Queue</span>
+      <button class="btn btn-sm btn-outline-secondary" onclick="loadSavedPolygons()">Refresh</button>
     </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover" id="officerTable">
-          <thead>
-            <tr><th>Parcel</th><th>Old Area</th><th>New Area</th><th>Difference</th><th>Quality</th><th>Overlap</th><th>Status</th><th>Actions</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+    <div class="card-body"><table class="table" id="officerTable"><thead><tr><th>Parcel</th><th>Old Area</th><th>New Area</th><th>Difference</th><th>Quality</th><th>Overlap</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
   </div>
 </section>
 
@@ -364,10 +278,7 @@ pre{white-space:pre-wrap;word-break:break-word}
 <div class="modal fade" id="dossierModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-folder2-open"></i> Parcel Case File</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+      <div class="modal-header"><h5 class="modal-title">Parcel Case File</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body" id="dossierContent"></div>
     </div>
   </div>
@@ -397,8 +308,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateOnlineStatus();
   window.addEventListener("online", updateOnlineStatus);
   window.addEventListener("offline", updateOnlineStatus);
-  document.getElementById("loginRole").addEventListener("change", updateLoginFields);
-  updateLoginFields();
 });
 
 function apiUrl(path){ return API + path; }
@@ -419,25 +328,30 @@ function escapeHtml(value){
 
 function updateOnlineStatus(){
   const online = navigator.onLine;
-  const status = document.getElementById("syncStatus");
-  const banner = document.getElementById("offlineBanner");
-  status.textContent = online ? "Online" : "Offline";
-  status.className = "badge " + (online ? "bg-success" : "bg-warning text-dark");
-  banner.style.display = online ? "none" : "block";
+  document.getElementById("syncStatus").textContent = online ? "Online" : "Offline";
+  document.getElementById("syncStatus").className = "badge " + (online ? "bg-success" : "bg-warning text-dark");
+  document.getElementById("offlineBanner").style.display = online ? "none" : "block";
 }
 
-function updateLoginFields(){
+function handleRoleChange() {
   const role = document.getElementById("loginRole").value;
-  document.getElementById("credentialBox").style.display =
-    role === "FARMER" ? "none" : "block";
-}
+  const credentialBox = document.getElementById("credentialBox");
+  const loginBtn = document.getElementById("loginBtn");
 
-/* ---------------- AUTH (Passwordless UI) ---------------- */
+  if (role === "FARMER") {
+    credentialBox.style.display = "none";
+    loginBtn.innerHTML = '<i class="bi bi-door-open"></i> Enter Citizen Portal Instantly';
+    loginBtn.className = "btn btn-success w-100";
+  } else {
+    credentialBox.style.display = "block";
+    loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Sign In';
+    loginBtn.className = "btn btn-primary w-100";
+  }
+}
 
 async function login(){
   const role = document.getElementById("loginRole").value;
-  const rawUser = document.getElementById("loginUser").value.trim().toLowerCase();
-
+  
   if(role === "FARMER"){
     currentUserRole = "FARMER";
     currentGovId = "CITIZEN";
@@ -446,32 +360,15 @@ async function login(){
     return;
   }
 
+  const rawUser = document.getElementById("loginUser").value.trim().toLowerCase();
   if(!rawUser){
-    showToast("Enter a User ID (e.g. surveyor or officer).", "warning");
+    showToast("Enter a User ID.", "warning");
     return;
   }
 
-  // Map user input to backend demo credentials automatically
-  const userMap = {
-    "gov-surv": "surveyor",
-    "surveyor": "surveyor",
-    "gov-head": "surveyhead",
-    "surveyhead": "surveyhead",
-    "gov-officer": "officer",
-    "officer": "officer",
-    "gov-admin": "admin",
-    "admin": "admin"
-  };
-
+  const userMap = { "surveyor": "surveyor", "officer": "officer", "admin": "admin" };
   const user = userMap[rawUser] || rawUser;
-  
-  // Automatically select the correct default password for the backend API
-  const defaultPasswords = {
-    "surveyor": "pass123",
-    "surveyhead": "pass123",
-    "officer": "pass123",
-    "admin": "admin123"
-  };
+  const defaultPasswords = { "surveyor": "pass123", "officer": "pass123", "admin": "admin123" };
   const password = defaultPasswords[user] || "pass123";
 
   try{
@@ -498,17 +395,14 @@ async function login(){
       await loadSavedPolygons();
       return;
     }
-
     showToast("Invalid user ID.", "danger");
   }catch(error){
     showToast("Could not connect to the Render backend.", "danger");
-    console.error(error);
   }
 }
 
 function updateHeader(){
-  document.getElementById("userStatus").textContent =
-    currentGovId ? `${currentGovId} • ${currentUserRole}` : "Not logged in";
+  document.getElementById("userStatus").textContent = currentGovId ? `${currentGovId} • ${currentUserRole}` : "Not logged in";
   document.getElementById("logoutBtn").classList.toggle("d-none", !currentUserRole);
 }
 
@@ -521,9 +415,7 @@ function showWorkspaceForRole(role){
     ADMIN:"adminWorkspace"
   };
   showWorkspace(mapRoles[role] || "loginWorkspace");
-  if(role === "OFFICER" || role === "SURVEY_HEAD"){
-    loadSavedPolygons();
-  }
+  if(role === "OFFICER" || role === "SURVEY_HEAD") loadSavedPolygons();
 }
 
 function showWorkspace(id){
@@ -551,8 +443,6 @@ async function apiFetch(path, options={}){
   return fetch(apiUrl(path), {...options, headers});
 }
 
-/* ---------------- MAP & SURVEY FUNCTIONS ---------------- */
-
 function initializeMap(){
   map = L.map("map").setView([20.9047,74.7754], 16);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19 }).addTo(map);
@@ -578,7 +468,6 @@ function toggleDrawMode(){
   if(isDrawing){ isDrawing = false; return; }
   isDrawing = true;
   drawnPoints = [];
-  document.getElementById("drawStatus").textContent = "Drawing — click points";
   showToast("Click boundary points on the map.", "info");
 }
 
@@ -623,8 +512,7 @@ async function registerExistingRecord(){
     gat_no: document.getElementById("gatNo").value || null,
     cts_no: document.getElementById("ctsNo").value || null,
     old_area: oldArea, new_area: Number(document.getElementById("manualNewArea").value || oldArea),
-    old_survey_method: document.getElementById("oldMethod").value,
-    audit_notes: `Year: ${document.getElementById("oldYear").value || "N/A"}`
+    old_survey_method: document.getElementById("oldMethod").value
   };
 
   const res = await apiFetch("/api/parcels/register", {method:"POST", body:payload});
@@ -672,7 +560,6 @@ async function loadSavedPolygons(){
       }
     });
     if(currentUserRole === "OFFICER") renderOfficerQueue();
-    if(currentUserRole === "SURVEY_HEAD") renderSurveyHeadQueue();
   }catch(e){ console.error(e); }
 }
 
@@ -700,18 +587,6 @@ function renderOfficerQueue(){
   document.getElementById("totalCount").textContent = globalParcelsDatabase.length;
   document.getElementById("pendingCount").textContent = pending;
   document.getElementById("approvedCount").textContent = approved;
-}
-
-function renderSurveyHeadQueue(){
-  const tbody = document.querySelector("#surveyHeadTable tbody");
-  if(!tbody) return;
-  tbody.innerHTML = globalParcelsDatabase.map(p => `<tr>
-    <td>${escapeHtml(p.parcel_id)}</td>
-    <td>${Number(p.new_area || p.old_area || 0).toFixed(2)} m²</td>
-    <td><span class="badge bg-success">PASS</span></td>
-    <td>${p.verification_status || "PENDING"}</td>
-    <td><button class="btn btn-sm btn-outline-primary" onclick="openDossier('${p.parcel_id}')">Review</button></td>
-  </tr>`).join("");
 }
 
 async function updateStatus(parcelId, status){
@@ -746,11 +621,14 @@ async function searchFarmerParcel(){
     '<div class="alert alert-warning">Parcel not found.</div>';
 }
 
-function exportToCSV(){
-  const rows = [["Parcel ID", "Village ID", "Old Area", "New Area", "Status"]];
-  globalParcelsDatabase.forEach(p => rows.push([p.parcel_id, p.village_id, p.old_area, p.new_area, p.verification_status || "PENDING"]));
-  const blob = new Blob([rows.map(r => r.join(",")).join("\n")], {type:"text/csv"});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "landlens_parcels.csv"; a.click();
+function sendMockOtp(){
+  document.getElementById("farmerVerificationStatus").innerHTML = '<span class="text-primary">OTP sent. Use 1234</span>';
+}
+
+function verifyMockOtp(){
+  const otp = document.getElementById("farmerOtp").value.trim();
+  document.getElementById("farmerVerificationStatus").innerHTML = otp === "1234" ? 
+    '<span class="text-success fw-bold">Verified!</span>' : '<span class="text-danger">Invalid OTP</span>';
 }
 
 if(localStorage.getItem("landlens_access_token")) accessToken = localStorage.getItem("landlens_access_token");
