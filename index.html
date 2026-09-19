@@ -40,9 +40,13 @@
         /* Main App Styles */
         .navbar-custom { background-color: #0f172a; border-bottom: 2px solid #2563eb; }
         .card-custom { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        #map { height: 60vh; width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
+        #map { height: 50vh; width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
         
         .info-btn { cursor: pointer; color: #2563eb; margin-left: 5px; font-size: 0.9rem; }
+        
+        /* Officer Dashboard Badges */
+        .risk-badge-high { background-color: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+        .risk-badge-low { background-color: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -130,16 +134,24 @@
                 <div id="survey-step-2" class="d-none">
                     <div class="card card-custom p-3 mb-3 d-flex flex-row justify-content-between align-items-center">
                         <div>
-                            <h5 class="fw-bold mb-0">Step 2: Draw Approximate Boundary <i class="bi bi-info-circle-fill info-btn" onclick="alert('Search the location, then tap at least 3 points on the map to draw the boundary polygon. The AI will calculate the area automatically.')"></i></h5>
-                            <small class="text-muted">Tap on the satellite map to drop coordinate pins.</small>
+                            <h5 class="fw-bold mb-0">Step 2: Plot Survey Boundary <i class="bi bi-info-circle-fill info-btn" onclick="alert('You can either tap the map to draw points manually OR paste highly accurate RTK coordinates into the box below to generate the polygon instantly.')"></i></h5>
                         </div>
                         <button class="btn btn-outline-secondary btn-sm" onclick="backToForm()">Back</button>
                     </div>
 
-                    <div class="card card-custom p-2 mb-3">
-                        <div class="input-group">
-                            <input type="text" id="location-query" class="form-control" placeholder="Search village or coordinates to zoom in...">
-                            <button class="btn btn-primary" onclick="searchLocation()">Go</button>
+                    <!-- Map Search & RTK Manual Entry -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="location-query" class="form-control" placeholder="Search village or taluka to zoom...">
+                                <button class="btn btn-secondary" onclick="searchLocation()">Go</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="manual_coords" class="form-control" placeholder="Paste Lat, Lng pairs (e.g. 20.90, 74.77; 20.91, 74.78)">
+                                <button class="btn btn-primary fw-bold" onclick="plotManualCoordinates()">Plot RTK</button>
+                            </div>
                         </div>
                     </div>
                     
@@ -155,21 +167,28 @@
                 </div>
             </div>
 
-            <!-- GOV OFFICER VIEW -->
+            <!-- GOV OFFICER VIEW (Restored Design) -->
             <div id="view-officer" class="d-none">
                 <div class="card card-custom p-4">
-                    <div class="d-flex justify-content-between mb-4">
-                        <h4 class="fw-bold">Officer Adjudication Dashboard <i class="bi bi-info-circle-fill info-btn" onclick="alert('Review incoming surveys. The AI automatically flags high-risk area discrepancies.')"></i></h4>
-                        <button class="btn btn-outline-primary" onclick="fetchParcels()"><i class="bi bi-arrow-clockwise"></i> Refresh Data</button>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0"><i class="bi bi-shield-check text-primary"></i> Officer Adjudication Dashboard</h4>
+                        <button class="btn btn-outline-primary btn-sm" onclick="fetchParcels()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
                     </div>
-                    <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr><th>Parcel ID</th><th>7/12 Gat No.</th><th>Discrepancy (sq ft)</th><th>AI Risk Status</th></tr>
-                        </thead>
-                        <tbody id="officer-table-body">
-                            <tr><td colspan="4" class="text-center text-muted">No pending surveys.</td></tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" style="font-size: 0.9rem;">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Parcel ID & Gat No.</th>
+                                    <th>Area Variance</th>
+                                    <th>AI Risk</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="officer-table-body">
+                                <tr><td colspan="4" class="text-center text-muted">Loading records...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -211,7 +230,9 @@
                 document.getElementById('survey-step-1').classList.remove('d-none');
                 document.getElementById('survey-step-2').classList.add('d-none');
             }
-            if (role === 'officer') fetchParcels();
+            if (role === 'officer') {
+                fetchParcels();
+            }
         }
 
         function logout() {
@@ -243,26 +264,60 @@
             map = L.map('map', { center: [20.9042, 74.7749], zoom: 17, maxZoom: 22, layers: [googleSat, googleLabels] });
 
             map.on('click', function(e) {
-                currentPoints.push([e.latlng.lat, e.latlng.lng]);
-                const marker = L.circleMarker([e.latlng.lat, e.latlng.lng], { radius: 5, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 1 }).addTo(map);
-                mapMarkers.push(marker);
-
-                if (currentPoints.length >= 3) {
-                    if (drawnPolygon) map.removeLayer(drawnPolygon);
-                    const turfCoords = [...currentPoints, currentPoints[0]].map(c => [c[1], c[0]]); 
-                    const poly = turf.polygon([turfCoords]);
-                    document.getElementById('calc_area_sqft').innerText = (turf.area(poly) * 10.7639).toFixed(2);
-
-                    drawnPolygon = L.polygon(currentPoints, { color: '#2563eb', weight: 3, fillColor: '#3b82f6', fillOpacity: 0.4 }).addTo(map);
-                }
+                addSurveyPoint(e.latlng.lat, e.latlng.lng);
             });
+        }
+
+        function addSurveyPoint(lat, lng) {
+            currentPoints.push([lat, lng]);
+            const marker = L.circleMarker([lat, lng], { radius: 5, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 1 }).addTo(map);
+            mapMarkers.push(marker);
+
+            if (currentPoints.length >= 3) {
+                if (drawnPolygon) map.removeLayer(drawnPolygon);
+                const turfCoords = [...currentPoints, currentPoints[0]].map(c => [c[1], c[0]]); 
+                const poly = turf.polygon([turfCoords]);
+                document.getElementById('calc_area_sqft').innerText = (turf.area(poly) * 10.7639).toFixed(2);
+                drawnPolygon = L.polygon(currentPoints, { color: '#2563eb', weight: 3, fillColor: '#3b82f6', fillOpacity: 0.4 }).addTo(map);
+            }
         }
 
         async function searchLocation() {
             const query = document.getElementById('location-query').value.trim();
+            if(!query) return;
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
             const data = await res.json();
             if (data.length > 0) map.flyTo([data[0].lat, data[0].lon], 19);
+        }
+
+        // Function to handle pasted RTK/ETS coordinates
+        function plotManualCoordinates() {
+            const text = document.getElementById('manual_coords').value.trim();
+            if (!text) return alert("Please paste Lat, Lng coordinates first.");
+            
+            // Split by semicolon, newline, or bar
+            const pairs = text.split(/[\n;|]+/).map(p => p.trim()).filter(p => p);
+            
+            if(pairs.length < 3) {
+                return alert("You need at least 3 coordinate pairs to draw a polygon.");
+            }
+
+            clearSurveyPoints(); 
+            
+            pairs.forEach(pair => {
+                const parts = pair.split(',');
+                if (parts.length >= 2) {
+                    const lat = parseFloat(parts[0].trim());
+                    const lng = parseFloat(parts[1].trim());
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        addSurveyPoint(lat, lng);
+                    }
+                }
+            });
+            
+            if (currentPoints.length > 0) {
+                map.flyTo(currentPoints[0], 21, { animate: true, duration: 1.5 });
+            }
         }
 
         function clearSurveyPoints() {
@@ -270,10 +325,11 @@
             mapMarkers.forEach(m => map.removeLayer(m)); mapMarkers = [];
             if (drawnPolygon) map.removeLayer(drawnPolygon);
             document.getElementById('calc_area_sqft').innerText = '0.00';
+            document.getElementById('manual_coords').value = '';
         }
 
         async function submitFinalSurvey() {
-            if (currentPoints.length < 3) return alert("Please draw at least 3 points on the map.");
+            if (currentPoints.length < 3) return alert("Please map at least 3 points for the boundary.");
             
             const parcelId = document.getElementById('surv_parcel_id').value;
             const payload = {
@@ -290,15 +346,31 @@
             clearSurveyPoints(); document.getElementById('surveyForm').reset(); backToForm();
         }
 
+        // Restored Officer Dashboard Logic
         async function fetchParcels() {
             const res = await fetch('/api/parcels/list');
             activeParcels = await res.json();
-            const tbody = document.getElementById('officer-table-body');
-            tbody.innerHTML = activeParcels.length ? '' : '<tr><td colspan="4" class="text-center text-muted">No pending surveys.</td></tr>';
             
+            const tbody = document.getElementById('officer-table-body');
+            tbody.innerHTML = '';
+
+            if (activeParcels.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No pending surveys.</td></tr>';
+                return;
+            }
+
             activeParcels.forEach(p => {
-                const color = p.ai_risk_type === 'High Risk' ? 'bg-danger' : 'bg-success';
-                tbody.innerHTML += `<tr><td><strong>${p.parcel_id}</strong></td><td>${p.reference_ror}</td><td>${p.area_difference} sq ft</td><td><span class="badge ${color}">${p.ai_risk_type}</span></td></tr>`;
+                const badgeClass = p.ai_risk_type === 'High Risk' ? 'risk-badge-high' : 'risk-badge-low';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${p.parcel_id}</strong><br><small class="text-muted">${p.reference_ror || 'N/A'}</small></td>
+                    <td>${p.area_difference || 0} sq ft</td>
+                    <td><span class="${badgeClass}">${p.ai_risk_type}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="alert('Inspecting ${p.parcel_id}... Legal Notice Generation Ready.')">Inspect</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
             });
         }
 
