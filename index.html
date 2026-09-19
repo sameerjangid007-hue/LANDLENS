@@ -7,27 +7,18 @@
 <title>LANDLENS | Land Survey & Verification Platform</title>
 
 <link
-  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-  rel="stylesheet">
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet">
 
 <link
-  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-  rel="stylesheet">
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    rel="stylesheet">
 
 <link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
-
 :root{
     --ll-primary:#123b63;
     --ll-secondary:#1f6f8b;
@@ -80,6 +71,14 @@ body{
 
 .workspace.active{
     display:block;
+}
+
+#roleGate{
+    display:block;
+}
+
+#roleGate.hidden{
+    display:none;
 }
 
 #map{
@@ -194,89 +193,97 @@ body{
     padding:15px;
 }
 
-.trial-badge{
-    font-size:.7rem;
-    letter-spacing:.5px;
+.action-card{
+    transition:.2s;
+}
+
+.action-card:hover{
+    transform:translateY(-2px);
+}
+
+.section-title{
+    font-weight:800;
+    color:var(--ll-primary);
+}
+
+.workspace-header{
+    border-bottom:1px solid var(--ll-border);
+    padding-bottom:15px;
+    margin-bottom:20px;
+}
+
+.info-box{
+    background:#f7fafc;
+    border:1px solid var(--ll-border);
+    border-radius:10px;
+    padding:15px;
+}
+
+#mapMessage{
+    display:none;
 }
 
 @media(max-width:768px){
-
     #map{
         height:360px;
     }
-
 }
-
 </style>
-
 </head>
 
 <body>
 
-
-<!-- =====================================================
+<!-- =========================================================
      NAVBAR
-===================================================== -->
+========================================================= -->
 
-<nav class="navbar navbar-dark navbar-expand-lg">
+<nav class="navbar navbar-dark">
+    <div class="container-fluid">
 
-<div class="container-fluid">
+        <a class="navbar-brand" href="javascript:void(0)">
+            <i class="bi bi-map"></i>
+            LANDLENS
+        </a>
 
-<a class="navbar-brand" href="#">
-    <i class="bi bi-map"></i>
-    LANDLENS
-</a>
+        <div class="d-flex align-items-center gap-2">
 
-<div class="d-flex align-items-center gap-2">
+            <span id="syncStatus" class="badge bg-success">
+                Online
+            </span>
 
-<span
-    id="syncStatus"
-    class="badge bg-success">
-    Online
-</span>
+            <span id="userStatus" class="badge bg-secondary">
+                Select Role
+            </span>
 
-<span
-    id="trialModeBadge"
-    class="badge bg-warning text-dark trial-badge">
-    DEMO / TRIAL MODE
-</span>
+            <button
+                id="changeRoleBtn"
+                class="btn btn-sm btn-outline-light d-none"
+                type="button"
+                onclick="changeRole()">
 
-<span
-    id="userStatus"
-    class="badge bg-secondary">
-    No role selected
-</span>
+                <i class="bi bi-arrow-left"></i>
+                Change Role
 
-<button
-    id="logoutBtn"
-    class="btn btn-sm btn-outline-light d-none"
-    onclick="logout()">
+            </button>
 
-<i class="bi bi-arrow-left"></i>
-Change Role
+        </div>
 
-</button>
-
-</div>
-
-</div>
-
+    </div>
 </nav>
 
 
-<!-- =====================================================
-     OFFLINE
-===================================================== -->
+<!-- =========================================================
+     OFFLINE MESSAGE
+========================================================= -->
 
 <div
     id="offlineBanner"
     class="alert alert-warning rounded-0 mb-0 text-center">
 
-<i class="bi bi-wifi-off"></i>
-
-Offline mode:
-data can be prepared locally and synchronized when
-connection returns.
+    <i class="bi bi-wifi-off"></i>
+    Internet connection unavailable.
+    Data that requires server synchronization may be saved
+    when connection returns.
 
 </div>
 
@@ -284,324 +291,4023 @@ connection returns.
 <main class="container-fluid py-4">
 
 
-<!-- =====================================================
+<!-- =========================================================
      ROLE SELECTION
-===================================================== -->
+========================================================= -->
 
-<section
-    id="loginWorkspace"
-    class="workspace active">
+<section id="roleGate">
 
-<div class="row justify-content-center">
+    <div class="row justify-content-center">
 
-<div class="col-xl-9 col-lg-10">
+        <div class="col-xl-10 col-lg-11">
 
-<div class="card">
+            <div class="card">
 
-<div class="card-body p-4">
+                <div class="card-body p-4 p-lg-5">
 
-<div class="text-center mb-4">
+                    <div class="text-center mb-4">
 
-<h1 class="fw-bold">
+                        <h1 class="fw-bold">
+                            <i class="bi bi-map"></i>
+                            LANDLENS
+                        </h1>
 
-<i class="bi bi-map"></i>
-LANDLENS
+                        <h5 class="text-muted">
+                            Land Survey & Verification Platform
+                        </h5>
 
-</h1>
+                        <p class="small-muted mb-0">
+                            Unified parcel-centric survey and verification workflow
+                        </p>
 
-<h5 class="text-muted">
-Land Survey & Verification Platform
-</h5>
+                    </div>
 
-<p class="small-muted mb-2">
-Unified parcel-centric survey and verification workflow
-</p>
 
-<span class="badge bg-warning text-dark">
-Temporary Trial Mode — Authentication Disabled
-</span>
+                    <div class="text-center mb-4">
 
-</div>
+                        <h5 class="fw-bold">
+                            Select Your Post
+                        </h5>
 
+                        <p class="text-muted mb-0">
+                            Select the government role you want to access.
+                        </p>
 
-<h5 class="mb-3 text-center">
-Select your role to enter the corresponding workspace
-</h5>
+                    </div>
 
 
-<!-- ROLE CARDS -->
+                    <!-- =================================================
+                         ROLE CARDS
+                    ================================================== -->
 
-<div class="row g-3">
+                    <div class="row g-3">
 
 
-<!-- FARMER -->
+                        <!-- FARMER -->
 
-<div class="col-md-6 col-lg-3">
+                        <div class="col-md-6 col-lg-3">
 
-<div
-    id="roleCardFARMER"
-    class="card role-card h-100"
-    onclick="selectRole('FARMER')">
+                            <div
+                                id="roleCardFARMER"
+                                class="card role-card h-100"
+                                onclick="enterRole('FARMER')">
 
-<div class="card-body text-center">
+                                <div class="card-body text-center">
 
-<div class="role-icon text-success mb-2">
+                                    <div class="role-icon text-success mb-3">
+                                        <i class="bi bi-person"></i>
+                                    </div>
 
-<i class="bi bi-person"></i>
+                                    <h5>
+                                        Farmer / Citizen
+                                    </h5>
 
-</div>
+                                    <p class="small-muted">
+                                        Access permitted land information
+                                        and submit survey-related requests.
+                                    </p>
 
-<h5>
-Farmer / Citizen
-</h5>
+                                    <hr>
 
-<p class="small-muted">
+                                    <div class="text-start small">
 
-Access permitted parcel information,
-submit survey requests and track applications.
+                                        <strong>Responsibilities:</strong>
 
-</p>
+                                        <ul class="mt-2 ps-3">
 
-<button
-    class="btn btn-outline-success w-100"
-    onclick="event.stopPropagation(); enterRole('FARMER')">
+                                            <li>View permitted parcel records</li>
+                                            <li>View map information</li>
+                                            <li>Submit survey/resurvey request</li>
+                                            <li>Upload permitted documents</li>
+                                            <li>Track application status</li>
+                                            <li>View approved results</li>
 
-Enter Portal
+                                        </ul>
 
-</button>
+                                    </div>
 
-</div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success w-100 mt-2">
 
-</div>
+                                        Enter
 
-</div>
+                                    </button>
 
+                                </div>
 
-<!-- SURVEYOR -->
+                            </div>
 
-<div class="col-md-6 col-lg-3">
+                        </div>
 
-<div
-    id="roleCardSURVEYOR"
-    class="card role-card h-100"
-    onclick="selectRole('SURVEYOR')">
 
-<div class="card-body text-center">
+                        <!-- SURVEYOR -->
 
-<div class="role-icon text-primary mb-2">
+                        <div class="col-md-6 col-lg-3">
 
-<i class="bi bi-rulers"></i>
+                            <div
+                                id="roleCardSURVEYOR"
+                                class="card role-card h-100"
+                                onclick="enterRole('SURVEYOR')">
 
-</div>
+                                <div class="card-body text-center">
 
-<h5>
-Surveyor
-</h5>
+                                    <div class="role-icon text-primary mb-3">
+                                        <i class="bi bi-rulers"></i>
+                                    </div>
 
-<p class="small-muted">
+                                    <h5>
+                                        Surveyor
+                                    </h5>
 
-Manage old records, modern survey,
-GIS boundaries, quality checks and submission.
+                                    <p class="small-muted">
+                                        Conduct and prepare land surveys,
+                                        GIS data and verification evidence.
+                                    </p>
 
-</p>
+                                    <hr>
 
-<button
-    class="btn btn-outline-primary w-100"
-    onclick="event.stopPropagation(); enterRole('SURVEYOR')">
+                                    <div class="text-start small">
 
-Enter Portal
+                                        <strong>Responsibilities:</strong>
 
-</button>
+                                        <ul class="mt-2 ps-3">
 
-</div>
+                                            <li>Manage assigned surveys</li>
+                                            <li>Upload old records</li>
+                                            <li>Capture/import new survey data</li>
+                                            <li>Manage RTK / Total Station data</li>
+                                            <li>Upload drone survey data</li>
+                                            <li>Create GIS boundaries</li>
+                                            <li>Enter dimensions</li>
+                                            <li>Run quality checks</li>
+                                            <li>Compare old vs new data</li>
+                                            <li>Submit survey for verification</li>
 
-</div>
+                                        </ul>
 
-</div>
+                                    </div>
 
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary w-100 mt-2">
 
-<!-- OFFICER -->
+                                        Enter
 
-<div class="col-md-6 col-lg-3">
+                                    </button>
 
-<div
-    id="roleCardOFFICER"
-    class="card role-card h-100"
-    onclick="selectRole('OFFICER')">
+                                </div>
 
-<div class="card-body text-center">
+                            </div>
 
-<div class="role-icon text-dark mb-2">
+                        </div>
 
-<i class="bi bi-shield-check"></i>
 
-</div>
+                        <!-- OFFICER -->
 
-<h5>
-Authorized Officer
-</h5>
+                        <div class="col-md-6 col-lg-3">
 
-<p class="small-muted">
+                            <div
+                                id="roleCardOFFICER"
+                                class="card role-card h-100"
+                                onclick="enterRole('OFFICER')">
 
-Review survey evidence,
-compare records and verify submitted cases.
+                                <div class="card-body text-center">
 
-</p>
+                                    <div class="role-icon text-dark mb-3">
+                                        <i class="bi bi-shield-check"></i>
+                                    </div>
 
-<button
-    class="btn btn-outline-dark w-100"
-    onclick="event.stopPropagation(); enterRole('OFFICER')">
+                                    <h5>
+                                        Authorized Officer
+                                    </h5>
 
-Enter Portal
+                                    <p class="small-muted">
+                                        Review submitted survey cases and
+                                        make the configured verification decision.
+                                    </p>
 
-</button>
+                                    <hr>
 
-</div>
+                                    <div class="text-start small">
 
-</div>
+                                        <strong>Responsibilities:</strong>
 
-</div>
+                                        <ul class="mt-2 ps-3">
 
+                                            <li>Review submitted cases</li>
+                                            <li>Check old records</li>
+                                            <li>Check new survey data</li>
+                                            <li>Review GIS boundaries</li>
+                                            <li>Check survey quality</li>
+                                            <li>Review discrepancies</li>
+                                            <li>Review evidence</li>
+                                            <li>Approve / reject according to workflow</li>
+                                            <li>Request resurvey when required</li>
 
-<!-- ADMIN -->
+                                        </ul>
 
-<div class="col-md-6 col-lg-3">
+                                    </div>
 
-<div
-    id="roleCardADMIN"
-    class="card role-card h-100"
-    onclick="selectRole('ADMIN')">
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-dark w-100 mt-2">
 
-<div class="card-body text-center">
+                                        Enter
 
-<div class="role-icon text-danger mb-2">
+                                    </button>
 
-<i class="bi bi-gear"></i>
+                                </div>
 
-</div>
+                            </div>
 
-<h5>
-Administrator
-</h5>
+                        </div>
 
-<p class="small-muted">
 
-Manage system users, projects,
-settings and system monitoring.
+                        <!-- ADMIN -->
 
-</p>
+                        <div class="col-md-6 col-lg-3">
 
-<button
-    class="btn btn-outline-danger w-100"
-    onclick="event.stopPropagation(); enterRole('ADMIN')">
+                            <div
+                                id="roleCardADMIN"
+                                class="card role-card h-100"
+                                onclick="enterRole('ADMIN')">
 
-Enter Portal
+                                <div class="card-body text-center">
 
-</button>
+                                    <div class="role-icon text-danger mb-3">
+                                        <i class="bi bi-gear"></i>
+                                    </div>
 
-</div>
+                                    <h5>
+                                        Administrator
+                                    </h5>
 
-</div>
+                                    <p class="small-muted">
+                                        Manage platform configuration,
+                                        projects, monitoring and system controls.
+                                    </p>
 
-</div>
+                                    <hr>
 
-</div>
+                                    <div class="text-start small">
 
+                                        <strong>Responsibilities:</strong>
 
-<!-- SELECTED ROLE DESCRIPTION -->
+                                        <ul class="mt-2 ps-3">
 
-<div
-    id="selectedRoleDescription"
-    class="role-description mt-4">
+                                            <li>Manage system configuration</li>
+                                            <li>Manage villages and projects</li>
+                                            <li>Manage role permissions</li>
+                                            <li>Monitor system activity</li>
+                                            <li>Review audit information</li>
+                                            <li>Monitor system health</li>
+                                            <li>Manage platform settings</li>
 
-<h6>
-Select a role above
-</h6>
+                                        </ul>
 
-<p class="small-muted mb-0">
+                                    </div>
 
-No login credentials are required in this temporary
-prototype. Select the required government post and
-enter its workspace.
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-danger w-100 mt-2">
 
-</p>
+                                        Enter
 
-</div>
+                                    </button>
 
+                                </div>
 
-<div class="alert alert-secondary small mt-3 mb-0">
+                            </div>
 
-<i class="bi bi-info-circle"></i>
+                        </div>
 
-<strong>Trial mode:</strong>
+                    </div>
 
-Authentication and password protection are intentionally
-disabled for development and demonstration.
+                </div>
 
-When the workflow is finalized, proper government
-authentication and role-based authorization will be added.
+            </div>
 
-</div>
+        </div>
 
-
-</div>
-
-</div>
-
-</div>
-
-</div>
+    </div>
 
 </section>
 
 
-
-<!-- =====================================================
-     FARMER
-===================================================== -->
+<!-- =========================================================
+     FARMER WORKSPACE
+========================================================= -->
 
 <section
     id="farmerWorkspace"
     class="workspace">
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="workspace-header d-flex justify-content-between align-items-center">
 
-<div>
+        <div>
 
-<h3>
+            <h3>
+                <i class="bi bi-person"></i>
+                Farmer / Citizen Portal
+            </h3>
 
-<i class="bi bi-person"></i>
-Farmer / Citizen Portal
+            <p class="text-muted mb-0">
+                View permitted land information and manage survey-related requests.
+            </p>
 
-</h3>
+        </div>
 
-<p class="text-muted mb-0">
+        <span class="badge bg-success">
+            FARMER / CITIZEN
+        </span>
 
-View permitted parcel information, submit survey requests
-and track the status of applications.
-
-</p>
-
-</div>
-
-<span class="badge bg-success">
-FARMER / CITIZEN
-</span>
-
-</div>
+    </div>
 
 
-<!-- RESPONSIBILITIES -->
+    <div class="row g-3">
 
-<div class="card mb-3">
 
-<div class="card-header">
+        <div class="col-md-4">
 
-<i class="bi bi-list-check"></i>
-Citizen Services
+            <div class="card action-card h-100">
 
-</div>
+                <div class="card-body">
 
-<div class="card-body">
+                    <i class="bi bi-search fs-2 text-success"></i>
 
-<div
+                    <h5 class="mt-3">
+                        Search Parcel
+                    </h5>
+
+                    <p class="small-muted">
+                        Search and view permitted parcel information.
+                    </p>
+
+                    <button
+                        class="btn btn-success"
+                        onclick="loadParcels('farmerParcelTable')">
+
+                        View Parcels
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card action-card h-100">
+
+                <div class="card-body">
+
+                    <i class="bi bi-file-earmark-plus fs-2 text-primary"></i>
+
+                    <h5 class="mt-3">
+                        Survey / Resurvey Request
+                    </h5>
+
+                    <p class="small-muted">
+                        Submit a request for survey or resurvey.
+                    </p>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="showMessage('Survey request module is ready for workflow integration.')">
+
+                        Submit Request
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card action-card h-100">
+
+                <div class="card-body">
+
+                    <i class="bi bi-clock-history fs-2 text-dark"></i>
+
+                    <h5 class="mt-3">
+                        Application Status
+                    </h5>
+
+                    <p class="small-muted">
+                        Track the progress of submitted requests.
+                    </p>
+
+                    <button
+                        class="btn btn-dark"
+                        onclick="showMessage('Application tracking module is ready for integration.')">
+
+                        Track Application
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card mt-4">
+
+        <div class="card-header">
+            Permitted Parcel Records
+        </div>
+
+        <div class="card-body">
+
+            <div
+                id="farmerParcelTable"
+                class="table-responsive">
+
+                <p class="text-muted mb-0">
+                    Click "View Parcels" to load available parcel records.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     SURVEYOR WORKSPACE
+========================================================= -->
+
+<section
+    id="surveyorWorkspace"
+    class="workspace">
+
+    <div class="workspace-header d-flex justify-content-between align-items-center">
+
+        <div>
+
+            <h3>
+                <i class="bi bi-rulers"></i>
+                Surveyor Workspace
+            </h3>
+
+            <p class="text-muted mb-0">
+                Manage old records, modern survey observations, GIS and quality verification.
+            </p>
+
+        </div>
+
+        <span class="badge bg-primary">
+            SURVEYOR
+        </span>
+
+    </div>
+
+
+    <!-- SURVEYOR DASHBOARD -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Assigned Surveys
+                    </div>
+
+                    <div
+                        id="surveyorAssignedCount"
+                        class="metric">
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Old Records
+                    </div>
+
+                    <div class="metric">
+                        <i class="bi bi-file-earmark"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Modern Survey
+                    </div>
+
+                    <div class="metric">
+                        <i class="bi bi-geo-alt"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Quality Check
+                    </div>
+
+                    <div class="metric">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- REGISTER PARCEL -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-plus-square"></i>
+            Parcel / Survey Registration
+
+        </div>
+
+        <div class="card-body">
+
+            <form id="parcelForm">
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Parcel ID
+                        </label>
+
+                        <input
+                            id="parcel_id"
+                            class="form-control"
+                            placeholder="PIM-001"
+                            required>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Village ID
+                        </label>
+
+                        <input
+                            id="village_id"
+                            type="number"
+                            class="form-control"
+                            value="2"
+                            required>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Old Area
+                        </label>
+
+                        <input
+                            id="old_area"
+                            type="number"
+                            step="0.01"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            New Area
+                        </label>
+
+                        <input
+                            id="new_area"
+                            type="number"
+                            step="0.01"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary">
+
+                            <i class="bi bi-database-add"></i>
+                            Register / Update Parcel
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- OLD RECORD -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-file-earmark-text"></i>
+            Old / Historical Record
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Parcel ID
+                    </label>
+
+                    <input
+                        id="oldParcelId"
+                        class="form-control"
+                        placeholder="PIM-001">
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Old Survey Number
+                    </label>
+
+                    <input
+                        id="oldSurveyNo"
+                        class="form-control"
+                        placeholder="Survey / Gat / CTS">
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Survey Year
+                    </label>
+
+                    <input
+                        id="oldSurveyYear"
+                        type="number"
+                        class="form-control"
+                        placeholder="2010">
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        North Dimension
+                    </label>
+
+                    <input
+                        id="northDim"
+                        type="number"
+                        step="0.01"
+                        class="form-control">
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        South Dimension
+                    </label>
+
+                    <input
+                        id="southDim"
+                        type="number"
+                        step="0.01"
+                        class="form-control">
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        East Dimension
+                    </label>
+
+                    <input
+                        id="eastDim"
+                        type="number"
+                        step="0.01"
+                        class="form-control">
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        West Dimension
+                    </label>
+
+                    <input
+                        id="westDim"
+                        type="number"
+                        step="0.01"
+                        class="form-control">
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Source / RoR Reference
+                    </label>
+
+                    <input
+                        id="reference_ror"
+                        class="form-control"
+                        placeholder="Reference number">
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Old Survey Method
+                    </label>
+
+                    <select
+                        id="oldMethod"
+                        class="form-select">
+
+                        <option>Chain Survey</option>
+                        <option>Plane Table</option>
+                        <option>Traditional Survey</option>
+                        <option>Other</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-12">
+
+                    <label class="form-label">
+                        Old Record / Map / Photo
+                    </label>
+
+                    <input
+                        id="oldRecordFile"
+                        type="file"
+                        class="form-control"
+                        accept=".jpg,.jpeg,.png,.pdf,.tif,.tiff">
+
+                </div>
+
+
+                <div class="col-12">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        onclick="saveOldRecord()">
+
+                        <i class="bi bi-save"></i>
+                        Save Old Record
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MODERN SURVEY -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-satellite"></i>
+            Modern Survey Data
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Parcel ID
+                    </label>
+
+                    <input
+                        id="modernParcelId"
+                        class="form-control"
+                        placeholder="PIM-001">
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Survey Instrument
+                    </label>
+
+                    <select
+                        id="instrumentType"
+                        class="form-select">
+
+                        <option value="RTK GNSS">
+                            RTK GNSS / Rover
+                        </option>
+
+                        <option value="Total Station">
+                            Total Station
+                        </option>
+
+                        <option value="Drone / Orthophoto">
+                            Drone / Orthophoto
+                        </option>
+
+                        <option value="Mobile GPS">
+                            Mobile GPS
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Survey Date
+                    </label>
+
+                    <input
+                        id="surveyDate"
+                        type="date"
+                        class="form-control">
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Survey Points
+                    </label>
+
+                    <textarea
+                        id="pointsText"
+                        class="form-control"
+                        rows="5"
+                        placeholder="Enter coordinates or imported survey observations..."></textarea>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        New Survey File
+                    </label>
+
+                    <input
+                        id="modernSurveyFile"
+                        type="file"
+                        class="form-control mb-3"
+                        accept=".csv,.txt,.geojson,.json,.jpg,.jpeg,.png">
+
+                    <div class="small-muted">
+                        Supported workflow:
+                        RTK/GNSS, Total Station, drone data,
+                        GPS points and survey observations.
+                    </div>
+
+                </div>
+
+
+                <div class="col-12">
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="saveModernSurvey()">
+
+                        <i class="bi bi-save"></i>
+                        Save Modern Survey
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- DIMENSIONS -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-rulers"></i>
+            New Dimensions
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">North</label>
+                    <input id="newNorth" type="number" step="0.01" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">South</label>
+                    <input id="newSouth" type="number" step="0.01" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">East</label>
+                    <input id="newEast" type="number" step="0.01" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">West</label>
+                    <input id="newWest" type="number" step="0.01" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Diagonal 1</label>
+                    <input id="diag1" type="number" step="0.01" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Diagonal 2</label>
+                    <input id="diag2" type="number" step="0.01" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Calculated Area</label>
+                    <input id="calculatedArea" type="number" step="0.01" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Perimeter</label>
+                    <input id="calculatedPerimeter" type="number" step="0.01" class="form-control">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- GIS -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-map"></i>
+            GIS Survey Workspace
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3 mb-3">
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        GeoJSON Boundary
+                    </label>
+
+                    <input
+                        id="geojsonFile"
+                        type="file"
+                        class="form-control"
+                        accept=".geojson,.json">
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        GIS Actions
+                    </label>
+
+                    <div class="d-flex flex-wrap gap-2">
+
+                        <button
+                            class="btn btn-outline-primary"
+                            type="button"
+                            onclick="loadGeoJSON()">
+
+                            Load Boundary
+
+                        </button>
+
+                        <button
+                            class="btn btn-outline-secondary"
+                            type="button"
+                            onclick="clearMap()">
+
+                            Clear Map
+
+                        </button>
+
+                        <button
+                            class="btn btn-outline-success"
+                            type="button"
+                            onclick="calculateGeometry()">
+
+                            Calculate Area / Perimeter
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div id="mapMessage" class="alert alert-info">
+                Map is loading...
+            </div>
+
+            <div id="map"></div>
+
+            <div class="row g-3 mt-3">
+
+                <div class="col-md-4">
+
+                    <div class="comparison-box">
+
+                        <div class="small-muted">
+                            Geometry Area
+                        </div>
+
+                        <div
+                            id="geometryArea"
+                            class="metric">
+
+                            —
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="comparison-box">
+
+                        <div class="small-muted">
+                            Geometry Perimeter
+                        </div>
+
+                        <div
+                            id="geometryPerimeter"
+                            class="metric">
+
+                            —
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="comparison-box">
+
+                        <div class="small-muted">
+                            Geometry Status
+                        </div>
+
+                        <div
+                            id="geometryStatus"
+                            class="fw-bold mt-2">
+
+                            Not checked
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- QUALITY -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-shield-check"></i>
+            Quality Checks
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <div class="info-box">
+                        <strong>Coordinate Check</strong>
+                        <p class="small-muted mb-0">
+                            Missing or invalid coordinates
+                        </p>
+                        <span id="coordinateQuality" class="badge bg-secondary">
+                            NOT CHECKED
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="info-box">
+                        <strong>Geometry Check</strong>
+                        <p class="small-muted mb-0">
+                            Invalid/self-intersecting boundary
+                        </p>
+                        <span id="geometryQuality" class="badge bg-secondary">
+                            NOT CHECKED
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="info-box">
+                        <strong>Area Check</strong>
+                        <p class="small-muted mb-0">
+                            Old vs new area difference
+                        </p>
+                        <span id="areaQuality" class="badge bg-secondary">
+                            NOT CHECKED
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="info-box">
+                        <strong>Overall</strong>
+                        <p class="small-muted mb-0">
+                            Survey quality status
+                        </p>
+                        <span id="overallQuality" class="badge bg-secondary">
+                            NOT CHECKED
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- OLD VS NEW -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-arrow-left-right"></i>
+            Old vs New Comparison
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <div class="comparison-box">
+
+                        <div class="small-muted">
+                            Old Area
+                        </div>
+
+                        <div id="comparisonOldArea" class="metric">
+                            —
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="comparison-box">
+
+                        <div class="small-muted">
+                            New Area
+                        </div>
+
+                        <div id="comparisonNewArea" class="metric">
+                            —
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="comparison-box">
+
+                        <div class="small-muted">
+                            Difference
+                        </div>
+
+                        <div id="comparisonDifference" class="metric">
+                            —
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="row g-3 mt-1">
+
+                <div class="col-md-6">
+
+                    <div class="info-box">
+
+                        <strong>
+                            Percentage Difference
+                        </strong>
+
+                        <div id="comparisonPercentage"
+                             class="fs-4 fw-bold mt-2">
+                            —
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="info-box">
+
+                        <strong>
+                            Discrepancy Status
+                        </strong>
+
+                        <div id="discrepancyStatus"
+                             class="fs-5 fw-bold mt-2">
+
+                            Not checked
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="btn btn-primary mt-3"
+                onclick="runComparison()">
+
+                <i class="bi bi-arrow-left-right"></i>
+                Run Comparison
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- SUBMIT -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            Submit Survey
+        </div>
+
+        <div class="card-body">
+
+            <p class="small-muted">
+                After completing the old record, modern survey,
+                GIS, dimensions and quality checks, submit the
+                parcel for officer review.
+            </p>
+
+            <button
+                class="btn btn-success"
+                onclick="submitSurvey()">
+
+                <i class="bi bi-send"></i>
+                Submit for Verification
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- PARCEL LIST -->
+
+    <div class="card">
+
+        <div class="card-header d-flex justify-content-between">
+
+            <span>
+                <i class="bi bi-database"></i>
+                Parcel Database
+            </span>
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="loadParcels('surveyorParcelTable')">
+
+                Refresh
+
+            </button>
+
+        </div>
+
+        <div class="card-body">
+
+            <div id="surveyorParcelTable">
+
+                <p class="text-muted">
+                    Click Refresh to load parcel records.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     OFFICER WORKSPACE
+========================================================= -->
+
+<section
+    id="officerWorkspace"
+    class="workspace">
+
+    <div class="workspace-header d-flex justify-content-between align-items-center">
+
+        <div>
+
+            <h3>
+                <i class="bi bi-shield-check"></i>
+                Authorized Officer Workspace
+            </h3>
+
+            <p class="text-muted mb-0">
+                Review submitted survey cases, evidence, GIS,
+                quality results and discrepancies.
+            </p>
+
+        </div>
+
+        <span class="badge bg-dark">
+            AUTHORIZED OFFICER
+        </span>
+
+    </div>
+
+
+    <!-- DASHBOARD -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Total Parcels
+                    </div>
+
+                    <div
+                        id="officerTotal"
+                        class="metric">
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Pending Review
+                    </div>
+
+                    <div
+                        id="officerPending"
+                        class="metric">
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Approved
+                    </div>
+
+                    <div
+                        id="officerApproved"
+                        class="metric">
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="small-muted">
+                        Resurvey Required
+                    </div>
+
+                    <div
+                        id="officerResurvey"
+                        class="metric">
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- REVIEW -->
+
+    <div class="card mb-4">
+
+        <div class="card-header d-flex justify-content-between">
+
+            <span>
+                <i class="bi bi-inbox"></i>
+                Survey Review Queue
+            </span>
+
+            <button
+                class="btn btn-sm btn-outline-dark"
+                onclick="loadOfficerQueue()">
+
+                Refresh Queue
+
+            </button>
+
+        </div>
+
+        <div class="card-body">
+
+            <div
+                id="officerQueue"
+                class="table-responsive">
+
+                <p class="text-muted">
+                    Click Refresh Queue to load submitted parcel cases.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- REVIEW DETAILS -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            Case Review
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Parcel ID
+                    </label>
+
+                    <input
+                        id="officerParcelId"
+                        class="form-control"
+                        placeholder="Select parcel">
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Verification Status
+                    </label>
+
+                    <select
+                        id="officerStatus"
+                        class="form-select">
+
+                        <option value="UNDER REVIEW">
+                            UNDER REVIEW
+                        </option>
+
+                        <option value="VERIFIED">
+                            VERIFIED
+                        </option>
+
+                        <option value="APPROVED">
+                            APPROVED
+                        </option>
+
+                        <option value="REJECTED">
+                            REJECTED
+                        </option>
+
+                        <option value="RESURVEY REQUIRED">
+                            RESURVEY REQUIRED
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Review Remarks
+                    </label>
+
+                    <input
+                        id="officerRemarks"
+                        class="form-control"
+                        placeholder="Review remarks">
+
+                </div>
+
+
+                <div class="col-12">
+
+                    <button
+                        class="btn btn-dark"
+                        onclick="updateOfficerStatus()">
+
+                        <i class="bi bi-check2-square"></i>
+                        Update Verification Status
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- EVIDENCE CHECKLIST -->
+
+    <div class="card">
+
+        <div class="card-header">
+            Review Checklist
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <div class="info-box">
+
+                        <strong>
+                            Old Record
+                        </strong>
+
+                        <p class="small-muted">
+                            Historical map, dimensions,
+                            survey reference and source.
+                        </p>
+
+                        <span class="badge bg-secondary">
+                            REVIEW
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="info-box">
+
+                        <strong>
+                            Modern Survey
+                        </strong>
+
+                        <p class="small-muted">
+                            RTK, Total Station, drone,
+                            GPS and survey observations.
+                        </p>
+
+                        <span class="badge bg-secondary">
+                            REVIEW
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="info-box">
+
+                        <strong>
+                            GIS / Quality
+                        </strong>
+
+                        <p class="small-muted">
+                            Boundary, area, perimeter,
+                            geometry and discrepancy checks.
+                        </p>
+
+                        <span class="badge bg-secondary">
+                            REVIEW
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     ADMINISTRATOR
+========================================================= -->
+
+<section
+    id="adminWorkspace"
+    class="workspace">
+
+    <div class="workspace-header d-flex justify-content-between align-items-center">
+
+        <div>
+
+            <h3>
+                <i class="bi bi-gear"></i>
+                Administrator Workspace
+            </h3>
+
+            <p class="text-muted mb-0">
+                Manage platform configuration, projects and system monitoring.
+            </p>
+
+        </div>
+
+        <span class="badge bg-danger">
+            ADMINISTRATOR
+        </span>
+
+    </div>
+
+
+    <div class="row g-3">
+
+
+        <div class="col-md-4">
+
+            <div class="card action-card h-100">
+
+                <div class="card-body">
+
+                    <i class="bi bi-diagram-3 fs-2 text-danger"></i>
+
+                    <h5 class="mt-3">
+                        Villages & Projects
+                    </h5>
+
+                    <p class="small-muted">
+                        Manage villages, survey projects and
+                        administrative configuration.
+                    </p>
+
+                    <button
+                        class="btn btn-outline-danger"
+                        onclick="showMessage('Village and project management module is ready for integration.')">
+
+                        Manage
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card action-card h-100">
+
+                <div class="card-body">
+
+                    <i class="bi bi-people fs-2 text-primary"></i>
+
+                    <h5 class="mt-3">
+                        Roles & Permissions
+                    </h5>
+
+                    <p class="small-muted">
+                        Configure access permissions for system roles.
+                    </p>
+
+                    <button
+                        class="btn btn-outline-primary"
+                        onclick="showMessage('Role and permission management will be connected when authentication is added.')">
+
+                        Manage
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card action-card h-100">
+
+                <div class="card-body">
+
+                    <i class="bi bi-activity fs-2 text-success"></i>
+
+                    <h5 class="mt-3">
+                        System Monitoring
+                    </h5>
+
+                    <p class="small-muted">
+                        Monitor API, database, synchronization
+                        and system activity.
+                    </p>
+
+                    <button
+                        class="btn btn-outline-success"
+                        onclick="checkSystemHealth()">
+
+                        Check System
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <div class="card mt-3">
+
+                <div class="card-header">
+                    Audit & Activity
+                </div>
+
+                <div class="card-body">
+
+                    <p class="small-muted">
+                        Future production workflow will maintain
+                        parcel versions, audit history and user activity.
+                    </p>
+
+                    <button
+                        class="btn btn-secondary"
+                        onclick="showMessage('Audit log interface is ready for backend integration.')">
+
+                        Open Audit Monitor
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <div class="card mt-3">
+
+                <div class="card-header">
+                    Database
+                </div>
+
+                <div class="card-body">
+
+                    <p class="small-muted">
+                        View the current parcel records stored
+                        in the LandLens database.
+                    </p>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="loadParcels('adminParcelTable')">
+
+                        Load Database
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card mt-4">
+
+        <div class="card-header">
+            Parcel Database
+        </div>
+
+        <div class="card-body">
+
+            <div id="adminParcelTable">
+
+                <p class="text-muted">
+                    Click "Load Database".
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+</main>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div id="toastContainer"></div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+"use strict";
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
+let currentRole = "";
+let map = null;
+let currentGeoJSONLayer = null;
+let parcelCache = [];
+
+
+/* =========================================================
+   ROLE CONFIGURATION
+========================================================= */
+
+const ROLE_CONFIG = {
+
+    FARMER: {
+        name: "Farmer / Citizen",
+        workspace: "farmerWorkspace",
+        badge: "FARMER / CITIZEN"
+    },
+
+    SURVEYOR: {
+        name: "Surveyor",
+        workspace: "surveyorWorkspace",
+        badge: "SURVEYOR"
+    },
+
+    OFFICER: {
+        name: "Authorized Officer",
+        workspace: "officerWorkspace",
+        badge: "AUTHORIZED OFFICER"
+    },
+
+    ADMIN: {
+        name: "Administrator",
+        workspace: "adminWorkspace",
+        badge: "ADMINISTRATOR"
+    }
+
+};
+
+
+/* =========================================================
+   ROLE ENTRY
+   IMPORTANT:
+   This does NOT call API.
+   This does NOT require login.
+========================================================= */
+
+function enterRole(role){
+
+    if(!ROLE_CONFIG[role]){
+        showMessage("Invalid role selected.", "danger");
+        return;
+    }
+
+    currentRole = role;
+
+    const config = ROLE_CONFIG[role];
+
+    /* Hide role selection */
+
+    const gate = document.getElementById("roleGate");
+
+    if(gate){
+        gate.classList.add("hidden");
+    }
+
+
+    /* Hide every workspace */
+
+    document
+        .querySelectorAll(".workspace")
+        .forEach(function(workspace){
+
+            workspace.classList.remove("active");
+
+        });
+
+
+    /* Show selected workspace */
+
+    const selectedWorkspace =
+        document.getElementById(config.workspace);
+
+    if(selectedWorkspace){
+
+        selectedWorkspace.classList.add("active");
+
+    }else{
+
+        showMessage(
+            "Workspace could not be opened.",
+            "danger"
+        );
+
+        return;
+
+    }
+
+
+    /* Update navbar */
+
+    const userStatus =
+        document.getElementById("userStatus");
+
+    if(userStatus){
+
+        userStatus.textContent = config.name;
+
+        userStatus.className =
+            "badge bg-primary";
+
+    }
+
+
+    /* Show change role button */
+
+    const changeRoleButton =
+        document.getElementById("changeRoleBtn");
+
+    if(changeRoleButton){
+
+        changeRoleButton.classList.remove("d-none");
+
+    }
+
+
+    /* Workspace-specific actions */
+
+    if(role === "SURVEYOR"){
+
+        initializeMap();
+
+    }
+
+    if(role === "OFFICER"){
+
+        loadOfficerQueue();
+
+    }
+
+    if(role === "FARMER"){
+
+        loadParcels("farmerParcelTable");
+
+    }
+
+}
+
+
+/* =========================================================
+   CHANGE ROLE
+========================================================= */
+
+function changeRole(){
+
+    currentRole = "";
+
+    document
+        .querySelectorAll(".workspace")
+        .forEach(function(workspace){
+
+            workspace.classList.remove("active");
+
+        });
+
+
+    const gate =
+        document.getElementById("roleGate");
+
+    if(gate){
+
+        gate.classList.remove("hidden");
+
+    }
+
+
+    const userStatus =
+        document.getElementById("userStatus");
+
+    if(userStatus){
+
+        userStatus.textContent =
+            "Select Role";
+
+        userStatus.className =
+            "badge bg-secondary";
+
+    }
+
+
+    const button =
+        document.getElementById("changeRoleBtn");
+
+    if(button){
+
+        button.classList.add("d-none");
+
+    }
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+/* =========================================================
+   API
+========================================================= */
+
+const API = "";
+
+
+function apiUrl(path){
+
+    return API + path;
+
+}
+
+
+/* =========================================================
+   API REQUEST
+========================================================= */
+
+async function apiRequest(
+    path,
+    options = {}
+){
+
+    const finalOptions = {
+
+        method: options.method || "GET",
+
+        headers:{
+            "Content-Type":"application/json",
+            ...(options.headers || {})
+        }
+
+    };
+
+
+    if(options.body !== undefined){
+
+        finalOptions.body =
+            typeof options.body === "string"
+                ? options.body
+                : JSON.stringify(options.body);
+
+    }
+
+
+    const response =
+        await fetch(
+            apiUrl(path),
+            finalOptions
+        );
+
+
+    const text =
+        await response.text();
+
+
+    let data;
+
+    try{
+
+        data = text
+            ? JSON.parse(text)
+            : {};
+
+    }catch{
+
+        data = {
+            raw:text
+        };
+
+    }
+
+
+    if(!response.ok){
+
+        throw new Error(
+            data.detail ||
+            data.message ||
+            `Server error ${response.status}`
+        );
+
+    }
+
+
+    return data;
+
+}
+
+
+/* =========================================================
+   LOAD PARCELS
+========================================================= */
+
+async function loadParcels(targetId){
+
+    const target =
+        document.getElementById(targetId);
+
+    if(!target){
+        return;
+    }
+
+
+    target.innerHTML = `
+        <div class="text-center py-3">
+            <div class="spinner-border spinner-border-sm"></div>
+            Loading parcel records...
+        </div>
+    `;
+
+
+    try{
+
+        const data =
+            await apiRequest(
+                "/api/parcels/list"
+            );
+
+
+        parcelCache =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        renderParcelTable(
+            targetId,
+            parcelCache
+        );
+
+
+        updateOfficerDashboard(
+            parcelCache
+        );
+
+
+    }catch(error){
+
+        target.innerHTML = `
+            <div class="alert alert-warning mb-0">
+                <strong>Unable to load parcel database.</strong>
+                <br>
+                ${escapeHtml(error.message)}
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   RENDER PARCEL TABLE
+========================================================= */
+
+function renderParcelTable(
+    targetId,
+    parcels
+){
+
+    const target =
+        document.getElementById(targetId);
+
+    if(!target){
+        return;
+    }
+
+
+    if(!parcels.length){
+
+        target.innerHTML = `
+            <div class="alert alert-secondary mb-0">
+                No parcel records found.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    let rows = "";
+
+
+    parcels.forEach(function(parcel){
+
+        const status =
+            parcel.verification_status ||
+            "Pending";
+
+
+        rows += `
+
+            <tr>
+
+                <td>
+                    <strong>
+                        ${escapeHtml(parcel.parcel_id || "—")}
+                    </strong>
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        String(parcel.village_id ?? "—")
+                    )}
+                </td>
+
+                <td>
+                    ${formatNumber(parcel.old_area)}
+                </td>
+
+                <td>
+                    ${formatNumber(parcel.new_area)}
+                </td>
+
+                <td>
+                    ${escapeHtml(status)}
+                </td>
+
+                <td>
+
+                    <button
+                        class="btn btn-sm btn-outline-primary"
+                        onclick="selectParcelForReview('${escapeJs(parcel.parcel_id || "")}')">
+
+                        View
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    target.innerHTML = `
+
+        <table class="table table-hover">
+
+            <thead>
+
+                <tr>
+
+                    <th>Parcel ID</th>
+                    <th>Village</th>
+                    <th>Old Area</th>
+                    <th>New Area</th>
+                    <th>Status</th>
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+                ${rows}
+            </tbody>
+
+        </table>
+
+    `;
+
+}
+
+
+/* =========================================================
+   REGISTER PARCEL
+========================================================= */
+
+document
+    .getElementById("parcelForm")
+    ?.addEventListener(
+        "submit",
+        async function(event){
+
+            event.preventDefault();
+
+
+            const data = {
+
+                parcel_id:
+                    document.getElementById(
+                        "parcel_id"
+                    ).value.trim(),
+
+                village_id:
+                    Number(
+                        document.getElementById(
+                            "village_id"
+                        ).value
+                    ),
+
+                old_area:
+                    Number(
+                        document.getElementById(
+                            "old_area"
+                        ).value
+                    ),
+
+                new_area:
+                    Number(
+                        document.getElementById(
+                            "new_area"
+                        ).value
+                    )
+
+            };
+
+
+            if(!data.parcel_id){
+
+                showMessage(
+                    "Enter Parcel ID.",
+                    "warning"
+                );
+
+                return;
+
+            }
+
+
+            try{
+
+                await apiRequest(
+                    "/api/parcels/register",
+                    {
+                        method:"POST",
+                        body:data
+                    }
+                );
+
+
+                showMessage(
+                    "Parcel registered successfully.",
+                    "success"
+                );
+
+
+                loadParcels(
+                    "surveyorParcelTable"
+                );
+
+
+                runComparison();
+
+
+            }catch(error){
+
+                showMessage(
+                    error.message,
+                    "danger"
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   OLD RECORD
+========================================================= */
+
+async function saveOldRecord(){
+
+    const parcelId =
+        document
+            .getElementById("oldParcelId")
+            .value
+            .trim();
+
+
+    const reference =
+        document
+            .getElementById("reference_ror")
+            .value
+            .trim();
+
+
+    if(!parcelId){
+
+        showMessage(
+            "Enter Parcel ID for the old record.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        await apiRequest(
+            "/api/parcels/old-record",
+            {
+                method:"POST",
+
+                body:{
+                    parcel_id:parcelId,
+                    reference_ror:reference
+                }
+
+            }
+        );
+
+
+        showMessage(
+            "Old record reference saved.",
+            "success"
+        );
+
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "danger"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MODERN SURVEY
+========================================================= */
+
+async function saveModernSurvey(){
+
+    const parcelId =
+        document
+            .getElementById("modernParcelId")
+            .value
+            .trim();
+
+
+    const instrument =
+        document
+            .getElementById("instrumentType")
+            .value;
+
+
+    const points =
+        document
+            .getElementById("pointsText")
+            .value
+            .trim();
+
+
+    if(!parcelId){
+
+        showMessage(
+            "Enter Parcel ID.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        await apiRequest(
+            "/api/parcels/modern-survey",
+            {
+                method:"POST",
+
+                body:{
+                    parcel_id:parcelId,
+                    instrument_type:instrument,
+                    points_text:points
+                }
+
+            }
+        );
+
+
+        showMessage(
+            "Modern survey data saved.",
+            "success"
+        );
+
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "danger"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   OFFICER QUEUE
+========================================================= */
+
+async function loadOfficerQueue(){
+
+    try{
+
+        const data =
+            await apiRequest(
+                "/api/parcels/list"
+            );
+
+
+        parcelCache =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        updateOfficerDashboard(
+            parcelCache
+        );
+
+
+        renderOfficerQueue(
+            parcelCache
+        );
+
+
+    }catch(error){
+
+        const queue =
+            document.getElementById(
+                "officerQueue"
+            );
+
+
+        if(queue){
+
+            queue.innerHTML = `
+
+                <div class="alert alert-warning">
+                    ${escapeHtml(error.message)}
+                </div>
+
+            `;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   OFFICER TABLE
+========================================================= */
+
+function renderOfficerQueue(parcels){
+
+    const queue =
+        document.getElementById(
+            "officerQueue"
+        );
+
+
+    if(!queue){
+        return;
+    }
+
+
+    if(!parcels.length){
+
+        queue.innerHTML = `
+            <div class="alert alert-secondary mb-0">
+                No parcel cases available.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    let rows = "";
+
+
+    parcels.forEach(function(parcel){
+
+        const status =
+            parcel.verification_status ||
+            "Pending";
+
+
+        rows += `
+
+            <tr>
+
+                <td>
+                    <strong>
+                        ${escapeHtml(
+                            parcel.parcel_id || "—"
+                        )}
+                    </strong>
+                </td>
+
+                <td>
+                    ${formatNumber(parcel.old_area)}
+                </td>
+
+                <td>
+                    ${formatNumber(parcel.new_area)}
+                </td>
+
+                <td>
+                    ${escapeHtml(status)}
+                </td>
+
+                <td>
+
+                    <button
+                        class="btn btn-sm btn-dark"
+                        onclick="selectParcelForReview('${escapeJs(parcel.parcel_id || "")}')">
+
+                        Review
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    queue.innerHTML = `
+
+        <table class="table table-hover">
+
+            <thead>
+
+                <tr>
+
+                    <th>Parcel ID</th>
+                    <th>Old Area</th>
+                    <th>New Area</th>
+                    <th>Status</th>
+                    <th>Review</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+                ${rows}
+            </tbody>
+
+        </table>
+
+    `;
+
+}
+
+
+/* =========================================================
+   SELECT PARCEL
+========================================================= */
+
+function selectParcelForReview(parcelId){
+
+    const input =
+        document.getElementById(
+            "officerParcelId"
+        );
+
+
+    if(input){
+
+        input.value = parcelId;
+
+    }
+
+
+    const parcel =
+        parcelCache.find(
+            p =>
+                String(p.parcel_id) ===
+                String(parcelId)
+        );
+
+
+    if(parcel){
+
+        const oldArea =
+            Number(parcel.old_area || 0);
+
+        const newArea =
+            Number(parcel.new_area || 0);
+
+
+        document.getElementById(
+            "comparisonOldArea"
+        ).textContent =
+            formatNumber(oldArea);
+
+
+        document.getElementById(
+            "comparisonNewArea"
+        ).textContent =
+            formatNumber(newArea);
+
+
+        const difference =
+            newArea - oldArea;
+
+
+        document.getElementById(
+            "comparisonDifference"
+        ).textContent =
+            formatNumber(difference);
+
+
+        if(oldArea !== 0){
+
+            const percentage =
+                (
+                    difference /
+                    oldArea
+                ) * 100;
+
+
+            document.getElementById(
+                "comparisonPercentage"
+            ).textContent =
+                percentage.toFixed(2) + "%";
+
+        }
+
+
+        const status =
+            parcel.verification_status;
+
+
+        if(status){
+
+            const select =
+                document.getElementById(
+                    "officerStatus"
+                );
+
+
+            if(select){
+
+                const option =
+                    Array.from(
+                        select.options
+                    ).find(
+                        o =>
+                            o.value === status
+                    );
+
+
+                if(option){
+
+                    select.value = status;
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    document
+        .getElementById("officerParcelId")
+        ?.scrollIntoView({
+            behavior:"smooth",
+            block:"center"
+        });
+
+}
+
+
+/* =========================================================
+   UPDATE OFFICER STATUS
+========================================================= */
+
+async function updateOfficerStatus(){
+
+    const parcelId =
+        document
+            .getElementById(
+                "officerParcelId"
+            )
+            .value
+            .trim();
+
+
+    const status =
+        document
+            .getElementById(
+                "officerStatus"
+            )
+            .value;
+
+
+    if(!parcelId){
+
+        showMessage(
+            "Select or enter a Parcel ID.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        await apiRequest(
+            "/api/parcels/update-status",
+            {
+                method:"POST",
+
+                body:{
+                    parcel_id:parcelId,
+                    verification_status:status
+                }
+
+            }
+        );
+
+
+        showMessage(
+            "Verification status updated.",
+            "success"
+        );
+
+
+        loadOfficerQueue();
+
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "danger"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   OFFICER DASHBOARD
+========================================================= */
+
+function updateOfficerDashboard(parcels){
+
+    const total =
+        parcels.length;
+
+
+    const pending =
+        parcels.filter(
+            p =>
+                !p.verification_status ||
+                [
+                    "Pending Officer Approval",
+                    "UNDER REVIEW",
+                    "Pending"
+                ].includes(
+                    p.verification_status
+                )
+        ).length;
+
+
+    const approved =
+        parcels.filter(
+            p =>
+                p.verification_status ===
+                "APPROVED"
+        ).length;
+
+
+    const resurvey =
+        parcels.filter(
+            p =>
+                p.verification_status ===
+                "RESURVEY REQUIRED"
+        ).length;
+
+
+    const totalElement =
+        document.getElementById(
+            "officerTotal"
+        );
+
+
+    const pendingElement =
+        document.getElementById(
+            "officerPending"
+        );
+
+
+    const approvedElement =
+        document.getElementById(
+            "officerApproved"
+        );
+
+
+    const resurveyElement =
+        document.getElementById(
+            "officerResurvey"
+        );
+
+
+    if(totalElement)
+        totalElement.textContent = total;
+
+
+    if(pendingElement)
+        pendingElement.textContent = pending;
+
+
+    if(approvedElement)
+        approvedElement.textContent = approved;
+
+
+    if(resurveyElement)
+        resurveyElement.textContent = resurvey;
+
+}
+
+
+/* =========================================================
+   SURVEY COMPARISON
+========================================================= */
+
+function runComparison(){
+
+    const oldArea =
+        Number(
+            document.getElementById(
+                "old_area"
+            )?.value || 0
+        );
+
+
+    const newArea =
+        Number(
+            document.getElementById(
+                "new_area"
+            )?.value || 0
+        );
+
+
+    document.getElementById(
+        "comparisonOldArea"
+    ).textContent =
+        oldArea
+            ? formatNumber(oldArea)
+            : "—";
+
+
+    document.getElementById(
+        "comparisonNewArea"
+    ).textContent =
+        newArea
+            ? formatNumber(newArea)
+            : "—";
+
+
+    if(oldArea > 0){
+
+        const difference =
+            newArea - oldArea;
+
+
+        const percentage =
+            (
+                difference /
+                oldArea
+            ) * 100;
+
+
+        document.getElementById(
+            "comparisonDifference"
+        ).textContent =
+            formatNumber(difference);
+
+
+        document.getElementById(
+            "comparisonPercentage"
+        ).textContent =
+            percentage.toFixed(2) + "%";
+
+
+        const status =
+            Math.abs(percentage) <= 1
+                ? "Within configured check range"
+                : "Review Required";
+
+
+        document.getElementById(
+            "discrepancyStatus"
+        ).textContent =
+            status;
+
+
+        document.getElementById(
+            "areaQuality"
+        ).textContent =
+            Math.abs(percentage) <= 1
+                ? "PASS"
+                : "REVIEW";
+
+
+        document.getElementById(
+            "areaQuality"
+        ).className =
+            Math.abs(percentage) <= 1
+                ? "badge bg-success"
+                : "badge bg-warning text-dark";
+
+
+    }else{
+
+        document.getElementById(
+            "comparisonDifference"
+        ).textContent =
+            "—";
+
+
+        document.getElementById(
+            "comparisonPercentage"
+        ).textContent =
+            "—";
+
+
+        document.getElementById(
+            "discrepancyStatus"
+        ).textContent =
+            "Enter old area first.";
+
+    }
+
+}
+
+
+/* =========================================================
+   SUBMIT SURVEY
+========================================================= */
+
+function submitSurvey(){
+
+    const parcelId =
+        document
+            .getElementById(
+                "parcel_id"
+            )
+            ?.value
+            .trim();
+
+
+    if(!parcelId){
+
+        showMessage(
+            "Enter and register a Parcel ID before submission.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    showMessage(
+        "Survey prepared for officer verification.",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   GIS MAP
+========================================================= */
+
+function initializeMap(){
+
+    if(map){
+        setTimeout(
+            () => map.invalidateSize(),
+            100
+        );
+
+        return;
+    }
+
+
+    const mapElement =
+        document.getElementById(
+            "map"
+        );
+
+
+    if(!mapElement){
+        return;
+    }
+
+
+    if(typeof L === "undefined"){
+
+        document.getElementById(
+            "mapMessage"
+        ).style.display = "block";
+
+        document.getElementById(
+            "mapMessage"
+        ).textContent =
+            "Map library could not be loaded. Other survey functions remain available.";
+
+        return;
+
+    }
+
+
+    map =
+        L.map(
+            "map"
+        ).setView(
+            [20.5937,78.9629],
+            5
+        );
+
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom:19,
+            attribution:"© OpenStreetMap contributors"
+        }
+    ).addTo(map);
+
+
+    document.getElementById(
+        "mapMessage"
+    ).style.display =
+        "none";
+
+
+    setTimeout(
+        () => map.invalidateSize(),
+        200
+    );
+
+}
+
+
+/* =========================================================
+   GEOJSON
+========================================================= */
+
+function loadGeoJSON(){
+
+    const input =
+        document.getElementById(
+            "geojsonFile"
+        );
+
+
+    if(!input || !input.files.length){
+
+        showMessage(
+            "Select a GeoJSON file first.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    const file =
+        input.files[0];
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(event){
+
+            try{
+
+                const geojson =
+                    JSON.parse(
+                        event.target.result
+                    );
+
+
+                displayGeoJSON(
+                    geojson
+                );
+
+
+                showMessage(
+                    "GeoJSON boundary loaded.",
+                    "success"
+                );
+
+
+            }catch(error){
+
+                showMessage(
+                    "Invalid GeoJSON file.",
+                    "danger"
+                );
+
+            }
+
+        };
+
+
+    reader.readAsText(file);
+
+}
+
+
+/* =========================================================
+   DISPLAY GEOJSON
+========================================================= */
+
+function displayGeoJSON(geojson){
+
+    initializeMap();
+
+
+    if(!map){
+
+        showMessage(
+            "Map is not available.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    if(currentGeoJSONLayer){
+
+        map.removeLayer(
+            currentGeoJSONLayer
+        );
+
+    }
+
+
+    currentGeoJSONLayer =
+        L.geoJSON(
+            geojson,
+            {
+                style:{
+                    weight:3,
+                    fillOpacity:.2
+                }
+            }
+        ).addTo(map);
+
+
+    try{
+
+        map.fitBounds(
+            currentGeoJSONLayer.getBounds(),
+            {
+                padding:[20,20]
+            }
+        );
+
+    }catch(error){
+
+        console.warn(error);
+
+    }
+
+
+    calculateGeometry(
+        geojson
+    );
+
+}
+
+
+/* =========================================================
+   CALCULATE GEOMETRY
+========================================================= */
+
+function calculateGeometry(geojson = null){
+
+    if(!geojson){
+
+        showMessage(
+            "Load a GeoJSON boundary first.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        typeof turf === "undefined"
+    ){
+
+        showMessage(
+            "GIS calculation library is unavailable.",
+            "danger"
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        let feature =
+            geojson;
+
+
+        if(
+            geojson.type === "FeatureCollection"
+        ){
+
+            if(
+                !geojson.features.length
+            ){
+
+                throw new Error(
+                    "GeoJSON contains no features."
+                );
+
+            }
+
+
+            feature =
+                geojson.features[0];
+
+        }
+
+
+        const area =
+            turf.area(
+                feature
+            );
+
+
+        const perimeter =
+            turf.length(
+                turf.polygonToLine(
+                    feature
+                ),
+                {
+                    units:"meters"
+                }
+            );
+
+
+        document.getElementById(
+            "geometryArea"
+        ).textContent =
+            area.toFixed(2) + " m²";
+
+
+        document.getElementById(
+            "geometryPerimeter"
+        ).textContent =
+            perimeter.toFixed(2) + " m";
+
+
+        document.getElementById(
+            "geometryStatus"
+        ).textContent =
+            "Calculated";
+
+
+        document.getElementById(
+            "geometryQuality"
+        ).textContent =
+            "PASS";
+
+
+        document.getElementById(
+            "geometryQuality"
+        ).className =
+            "badge bg-success";
+
+
+    }catch(error){
+
+        document.getElementById(
+            "geometryStatus"
+        ).textContent =
+            "Check Required";
+
+
+        document.getElementById(
+            "geometryQuality"
+        ).textContent =
+            "ERROR";
+
+
+        document.getElementById(
+            "geometryQuality"
+        ).className =
+            "badge bg-danger";
+
+
+        showMessage(
+            error.message,
+            "danger"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CLEAR MAP
+========================================================= */
+
+function clearMap(){
+
+    if(currentGeoJSONLayer && map){
+
+        map.removeLayer(
+            currentGeoJSONLayer
+        );
+
+    }
+
+
+    currentGeoJSONLayer = null;
+
+
+    document.getElementById(
+        "geometryArea"
+    ).textContent = "—";
+
+
+    document.getElementById(
+        "geometryPerimeter"
+    ).textContent = "—";
+
+
+    document.getElementById(
+        "geometryStatus"
+    ).textContent =
+        "Not checked";
+
+}
+
+
+/* =========================================================
+   SYSTEM HEALTH
+========================================================= */
+
+async function checkSystemHealth(){
+
+    try{
+
+        const response =
+            await fetch(
+                apiUrl("/"),
+                {
+                    method:"GET"
+                }
+            );
+
+
+        if(response.ok){
+
+            showMessage(
+                "LandLens API is reachable.",
+                "success"
+            );
+
+        }else{
+
+            showMessage(
+                "LandLens API returned an error.",
+                "warning"
+            );
+
+        }
+
+    }catch(error){
+
+        showMessage(
+            "LandLens API is not reachable.",
+            "danger"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ONLINE / OFFLINE
+========================================================= */
+
+function updateConnectionStatus(){
+
+    const online =
+        navigator.onLine;
+
+
+    const status =
+        document.getElementById(
+            "syncStatus"
+        );
+
+
+    const banner =
+        document.getElementById(
+            "offlineBanner"
+        );
+
+
+    if(online){
+
+        status.textContent =
+            "Online";
+
+        status.className =
+            "badge bg-success";
+
+        banner.style.display =
+            "none";
+
+    }else{
+
+        status.textContent =
+            "Offline";
+
+        status.className =
+            "badge bg-warning text-dark";
+
+        banner.style.display =
+            "block";
+
+    }
+
+}
+
+
+window.addEventListener(
+    "online",
+    updateConnectionStatus
+);
+
+
+window.addEventListener(
+    "offline",
+    updateConnectionStatus
+);
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+function showMessage(
+    message,
+    type = "info"
+){
+
+    const container =
+        document.getElementById(
+            "toastContainer"
+        );
+
+
+    const alert =
+        document.createElement(
+            "div"
+        );
+
+
+    alert.className =
+        `alert alert-${type} shadow mb-2`;
+
+
+    alert.innerHTML =
+        escapeHtml(message);
+
+
+    container.appendChild(
+        alert
+    );
+
+
+    setTimeout(
+        function(){
+
+            alert.remove();
+
+        },
+        3500
+    );
+
+}
+
+
+/* =========================================================
+   FORMAT NUMBER
+========================================================= */
+
+function formatNumber(value){
+
+    const number =
+        Number(value);
+
+
+    if(
+        !Number.isFinite(number)
+    ){
+
+        return "—";
+
+    }
+
+
+    return number.toLocaleString(
+        undefined,
+        {
+            maximumFractionDigits:2
+        }
+    );
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(value ?? "")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================================
+   ESCAPE JS
+========================================================= */
+
+function escapeJs(value){
+
+    return String(value ?? "")
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
+        );
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        updateConnectionStatus();
+
+        /*
+         * Important:
+         * No login function is called here.
+         * The application always starts at role selection.
+         */
+
+    }
+);
+
+</script>
+
+
+<!-- =========================================================
+     EXTERNAL LIBRARIES
+     Loaded after the core role-selection JavaScript.
+========================================================= -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js">
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
+</script>
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>
