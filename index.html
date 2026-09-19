@@ -3,230 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LANDLENS | Smart Land Cadastral Resurvey Platform</title>
-    <!-- Fonts & UI Frameworks -->
+    <title>LANDLENS | Smart Land Cadastral Resurvey</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- Leaflet GIS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
     <style>
-        :root {
-            --brand-primary: #1e3a8a;
-            --brand-accent: #2563eb;
-            --brand-dark: #0f172a;
-            --surface-card: #ffffff;
-            --border-color: #e2e8f0;
-            --text-muted: #64748b;
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* Landing Page Styles */
+        #landing-page {
+            height: 100vh;
+            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/India_topographic_map-en.svg/1024px-India_topographic_map-en.svg.png') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-        }
-
-        .navbar-custom {
-            background-color: var(--brand-dark);
-            border-bottom: 2px solid var(--brand-accent);
-            padding: 0.8rem 1.5rem;
-        }
-
-        .brand-title {
-            font-size: 1.35rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            color: #ffffff;
-        }
-
-        .role-pill {
+        
+        .role-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
             cursor: pointer;
-            padding: 0.45rem 1.1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.88rem;
-            transition: all 0.2s ease;
-            color: #94a3b8;
+            transition: all 0.3s;
         }
-
-        .role-pill.active {
-            background-color: var(--brand-accent);
-            color: #ffffff;
-        }
-
-        .card-custom {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        #map {
-            height: 580px;
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .risk-badge-high {
-            background-color: #fee2e2;
-            color: #dc2626;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .risk-badge-low {
-            background-color: #dcfce7;
-            color: #16a34a;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .search-control-box {
-            position: relative;
-        }
+        .role-card:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-5px); }
+        
+        /* Main App Styles */
+        .navbar-custom { background-color: #0f172a; border-bottom: 2px solid #2563eb; }
+        .card-custom { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        #map { height: 60vh; width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
+        
+        .info-btn { cursor: pointer; color: #2563eb; margin-left: 5px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <!-- Unified Header -->
-    <nav class="navbar navbar-custom d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-3">
-            <span class="brand-title"><i class="bi bi-geo-alt-fill text-primary"></i> LANDLENS</span>
-            <span class="badge bg-secondary" style="font-size: 0.7rem;">SIH26010 COMPLIANT</span>
+    <!-- 1. LANDING PAGE -->
+    <div id="landing-page">
+        <h1 class="display-3 fw-bold mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> LANDLENS</h1>
+        <p class="lead mb-5">Unified Land Records & Spatial Verification (SIH26010)</p>
+        
+        <div class="container">
+            <div class="row justify-content-center g-4">
+                <div class="col-md-3">
+                    <div class="role-card" onclick="login('citizen')">
+                        <i class="bi bi-person-circle fs-1 mb-2"></i>
+                        <h5>Citizen Portal</h5>
+                        <span class="badge bg-success">Free Access</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="role-card" onclick="login('surveyor')">
+                        <i class="bi bi-crosshair fs-1 mb-2"></i>
+                        <h5>Field Surveyor</h5>
+                        <span class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Secure Login</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="role-card" onclick="login('officer')">
+                        <i class="bi bi-shield-check fs-1 mb-2"></i>
+                        <h5>Gov Officer</h5>
+                        <span class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Secure Login</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex bg-dark p-1 rounded-3 gap-1 border border-secondary">
-            <span class="role-pill active" id="tab-surveyor" onclick="switchRole('surveyor')"><i class="bi bi-crosshair"></i> Surveyor</span>
-            <span class="role-pill" id="tab-officer" onclick="switchRole('officer')"><i class="bi bi-shield-check"></i> GOV Officer</span>
-            <span class="role-pill" id="tab-citizen" onclick="switchRole('citizen')"><i class="bi bi-person"></i> Citizen</span>
-        </div>
-    </nav>
+    </div>
 
-    <div class="container-fluid py-3 px-4">
-        <div class="row g-3">
+    <!-- 2. MAIN APPLICATION WORKSPACE -->
+    <div id="main-workspace" class="d-none">
+        <nav class="navbar navbar-custom py-3 px-4 d-flex justify-content-between">
+            <span class="text-white fw-bold fs-5"><i class="bi bi-geo-alt-fill text-primary"></i> LANDLENS Workspace</span>
+            <button class="btn btn-sm btn-outline-light" onclick="logout()">Sign Out</button>
+        </nav>
+
+        <div class="container py-4">
             
-            <!-- Left Side: Dynamic Workspace -->
-            <div class="col-lg-4">
+            <!-- SURVEYOR VIEW (Step-by-Step) -->
+            <div id="view-surveyor" class="d-none">
                 
-                <!-- SURVEYOR VIEW -->
-                <div id="view-surveyor" class="card card-custom p-3">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square text-primary"></i> Register Cadastral Survey</h6>
-                    
-                    <form id="surveyForm" onsubmit="handleSurveySubmit(event)">
-                        <div class="mb-2">
-                            <label class="form-label small fw-semibold">Parcel Identifier</label>
-                            <input type="text" id="surv_parcel_id" class="form-control form-control-sm" placeholder="e.g., PIM-102" required>
+                <!-- Step 1: Form -->
+                <div id="survey-step-1" class="card card-custom p-4 max-w-md mx-auto" style="max-width: 600px;">
+                    <h5 class="fw-bold text-primary mb-4">Step 1: Enter Legacy Record Details</h5>
+                    <form id="surveyForm" onsubmit="goToMap(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Parcel ID <i class="bi bi-info-circle-fill info-btn" onclick="alert('Enter the unique alphanumeric ID assigned to this land survey, e.g., PIM-102.')"></i></label>
+                            <input type="text" id="surv_parcel_id" class="form-control" required>
                         </div>
-                        <div class="row g-2 mb-2">
+                        <div class="row mb-3">
                             <div class="col-6">
-                                <label class="form-label small fw-semibold">Village Code (LGD)</label>
-                                <input type="number" id="surv_village_id" class="form-control form-control-sm" placeholder="526841" required>
+                                <label class="form-label fw-semibold">LGD Village Code <i class="bi bi-info-circle-fill info-btn" onclick="alert('The 6-digit Local Government Directory code for the village.')"></i></label>
+                                <input type="number" id="surv_village_id" class="form-control" required>
                             </div>
                             <div class="col-6">
-                                <label class="form-label small fw-semibold">7/12 Gat / Survey No.</label>
-                                <input type="text" id="surv_ror" class="form-control form-control-sm" placeholder="Gat 45/1" required>
+                                <label class="form-label fw-semibold">7/12 Gat No. <i class="bi bi-info-circle-fill info-btn" onclick="alert('The legal survey number from the Mahabhulekh 7/12 extract.')"></i></label>
+                                <input type="text" id="surv_ror" class="form-control" required>
                             </div>
                         </div>
-                        <div class="row g-2 mb-2">
+                        <div class="row mb-4">
                             <div class="col-6">
-                                <label class="form-label small fw-semibold">Old Legal Area (sq ft)</label>
-                                <input type="number" step="any" id="surv_old_area" class="form-control form-control-sm" placeholder="2500" required>
+                                <label class="form-label fw-semibold">Old Area (sq ft) <i class="bi bi-info-circle-fill info-btn" onclick="alert('The historical area recorded in the old paper documents.')"></i></label>
+                                <input type="number" id="surv_old_area" class="form-control" required>
                             </div>
                             <div class="col-6">
-                                <label class="form-label small fw-semibold">Survey Method</label>
-                                <select id="surv_method" class="form-select form-select-sm">
-                                    <option value="RTK-DGPS">RTK-DGPS GNSS</option>
-                                    <option value="ETS">Electronic Total Station</option>
-                                    <option value="DRONE">SVAMITVA Drone Ortho</option>
+                                <label class="form-label fw-semibold">Survey Method <i class="bi bi-info-circle-fill info-btn" onclick="alert('The tool used to capture these coordinates.')"></i></label>
+                                <select id="surv_method" class="form-select">
+                                    <option>RTK-DGPS GNSS</option>
+                                    <option>Electronic Total Station</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold">Survey Vertices (Click Map to Add)</label>
-                            <textarea id="surv_points" class="form-control form-control-sm" rows="3" placeholder="Lat, Lng points will populate as you click the map..." readonly></textarea>
-                            <div class="d-flex justify-content-between mt-1">
-                                <span class="text-muted" style="font-size: 0.72rem;">Calculated: <b id="calc_area_sqft">0.00</b> sq ft</span>
-                                <button type="button" class="btn btn-link btn-sm p-0 text-danger" style="font-size: 0.75rem;" onclick="clearSurveyPoints()">Clear Pins</button>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold"><i class="bi bi-cloud-arrow-up"></i> Upload Survey to Cloud</button>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Proceed to Map Drawing <i class="bi bi-arrow-right"></i></button>
                     </form>
                 </div>
 
-                <!-- GOV OFFICER VIEW -->
-                <div id="view-officer" class="card card-custom p-3 d-none">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0"><i class="bi bi-shield-check text-primary"></i> Officer Adjudication</h6>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="fetchParcels()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                <!-- Step 2: Map -->
+                <div id="survey-step-2" class="d-none">
+                    <div class="card card-custom p-3 mb-3 d-flex flex-row justify-content-between align-items-center">
+                        <div>
+                            <h5 class="fw-bold mb-0">Step 2: Draw Approximate Boundary <i class="bi bi-info-circle-fill info-btn" onclick="alert('Search the location, then tap at least 3 points on the map to draw the boundary polygon. The AI will calculate the area automatically.')"></i></h5>
+                            <small class="text-muted">Tap on the satellite map to drop coordinate pins.</small>
+                        </div>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="backToForm()">Back</button>
                     </div>
-                    <div class="table-responsive" style="max-height: 480px;">
-                        <table class="table table-hover align-middle" style="font-size: 0.8rem;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Variance</th>
-                                    <th>Risk</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="officer-table-body">
-                                <tr><td colspan="4" class="text-center text-muted">Loading records...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
-                <!-- CITIZEN PORTAL -->
-                <div id="view-citizen" class="card card-custom p-3 d-none">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-search text-primary"></i> Digital 7/12 & Boundary Inquiry</h6>
-                    <div class="input-group input-group-sm mb-3">
-                        <input type="text" id="citizen-search-input" class="form-control" placeholder="Enter Parcel ID or Gat No. (e.g., PIM-100)">
-                        <button class="btn btn-primary" onclick="lookupCitizenParcel()"><i class="bi bi-search"></i> Search</button>
-                    </div>
-                    <div id="citizen-result-card" class="d-none">
-                        <div class="p-2 border rounded bg-light mb-2">
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted small">ROR Status:</span>
-                                <span class="fw-bold small text-success" id="cit-ror-id">Verified 7/12</span>
-                            </div>
-                            <div class="d-flex justify-content-between mt-1">
-                                <span class="text-muted small">Area Discrepancy:</span>
-                                <span class="fw-bold small" id="cit-diff">0 sq ft</span>
-                            </div>
-                            <div class="d-flex justify-content-between mt-1">
-                                <span class="text-muted small">Adjudication:</span>
-                                <span class="badge bg-primary" id="cit-status">Pending</span>
-                            </div>
+                    <div class="card card-custom p-2 mb-3">
+                        <div class="input-group">
+                            <input type="text" id="location-query" class="form-control" placeholder="Search village or coordinates to zoom in...">
+                            <button class="btn btn-primary" onclick="searchLocation()">Go</button>
                         </div>
                     </div>
-                </div>
+                    
+                    <div id="map"></div>
 
+                    <div class="card card-custom p-3 mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 fw-bold">Calculated Area: <span id="calc_area_sqft" class="text-primary fs-5">0.00</span> sq ft</h6>
+                            <button class="btn btn-sm btn-danger" onclick="clearSurveyPoints()">Clear Pins</button>
+                        </div>
+                        <button class="btn btn-success w-100 fw-bold" onclick="submitFinalSurvey()">Submit Final Resurvey Data</button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Right Side: High-Resolution Spatial Map -->
-            <div class="col-lg-8">
-                <div class="card card-custom p-3">
-                    <div class="row g-2 mb-2 align-items-center">
-                        <div class="col-md-7">
-                            <div class="input-group input-group-sm search-control-box">
-                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt"></i></span>
-                                <input type="text" id="location-query" class="form-control border-start-0" placeholder="Search village, taluka, city or coordinates...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="searchLocation()">Go to Site</button>
-                            </div>
-                        </div>
-                        <div class="col-md-5 text-end">
-                            <span class="badge bg-light text-dark border me-1"><i class="bi bi-layers"></i> Google Satellite HD</span>
-                            <span class="badge bg-light text-dark border"><i class="bi bi-zoom-in"></i> Sub-meter Zoom: 22x</span>
-                        </div>
+            <!-- GOV OFFICER VIEW -->
+            <div id="view-officer" class="d-none">
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between mb-4">
+                        <h4 class="fw-bold">Officer Adjudication Dashboard <i class="bi bi-info-circle-fill info-btn" onclick="alert('Review incoming surveys. The AI automatically flags high-risk area discrepancies.')"></i></h4>
+                        <button class="btn btn-outline-primary" onclick="fetchParcels()"><i class="bi bi-arrow-clockwise"></i> Refresh Data</button>
                     </div>
-                    <div id="map"></div>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr><th>Parcel ID</th><th>7/12 Gat No.</th><th>Discrepancy (sq ft)</th><th>AI Risk Status</th></tr>
+                        </thead>
+                        <tbody id="officer-table-body">
+                            <tr><td colspan="4" class="text-center text-muted">No pending surveys.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CITIZEN VIEW -->
+            <div id="view-citizen" class="d-none">
+                <div class="card card-custom p-4 max-w-md mx-auto" style="max-width: 500px;">
+                    <h5 class="fw-bold mb-3 text-center">Citizen Digital 7/12 Inquiry <i class="bi bi-info-circle-fill info-btn" onclick="alert('Citizens can check the status of their land survey by entering their unique ID.')"></i></h5>
+                    <div class="input-group mb-4">
+                        <input type="text" id="citizen-search-input" class="form-control" placeholder="Enter Parcel ID (e.g., PIM-102)">
+                        <button class="btn btn-primary" onclick="lookupCitizenParcel()">Search</button>
+                    </div>
+                    <div id="citizen-result-card" class="d-none border p-3 rounded bg-light">
+                        <p class="mb-1"><strong>Status:</strong> <span id="cit-status" class="badge bg-primary"></span></p>
+                        <p class="mb-1"><strong>Calculated Area Difference:</strong> <span id="cit-diff"></span></p>
+                    </div>
                 </div>
             </div>
 
@@ -234,242 +192,125 @@
     </div>
 
     <script>
-        // Global Map & Data State
-        let map;
-        let drawnPolygon;
-        let currentPoints = [];
-        let mapMarkers = [];
-        let activeParcels = [];
-
-        // Initialize High-Resolution Map (Updated for Google Satellite)
-        function initMap() {
-            // Base layer: Google High-Resolution Satellite
-            const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-                attribution: 'Map data &copy; Google',
-                maxNativeZoom: 20,
-                maxZoom: 22
-            });
-
-            // Road/Boundary Reference Overlay
-            const googleLabels = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
-                maxNativeZoom: 20,
-                maxZoom: 22
-            });
-
-            map = L.map('map', {
-                center: [20.9042, 74.7749], // Centered at Dhule survey hub
-                zoom: 17, 
-                maxZoom: 22,
-                layers: [googleSat, googleLabels]
-            });
-
-            // Capture clicks for surveyor polygon mapping
-            map.on('click', function(e) {
-                if (document.getElementById('tab-surveyor').classList.contains('active')) {
-                    addSurveyPoint(e.latlng.lat, e.latlng.lng);
+        // --- Navigation & Auth Logic ---
+        function login(role) {
+            if (role === 'surveyor' || role === 'officer') {
+                const pass = prompt("Enter Secure Password (Hint: demo123):");
+                if (pass !== "demo123") {
+                    alert("Incorrect Password. Access Denied.");
+                    return;
                 }
-            });
+            }
+            document.getElementById('landing-page').classList.add('d-none');
+            document.getElementById('main-workspace').classList.remove('d-none');
+            
+            ['surveyor', 'officer', 'citizen'].forEach(r => document.getElementById(`view-${r}`).classList.add('d-none'));
+            document.getElementById(`view-${role}`).classList.remove('d-none');
 
-            fetchParcels();
+            if (role === 'surveyor') {
+                document.getElementById('survey-step-1').classList.remove('d-none');
+                document.getElementById('survey-step-2').classList.add('d-none');
+            }
+            if (role === 'officer') fetchParcels();
         }
 
-        // Location Search using OpenStreetMap Nominatim
+        function logout() {
+            document.getElementById('main-workspace').classList.add('d-none');
+            document.getElementById('landing-page').classList.remove('d-none');
+        }
+
+        function goToMap(e) {
+            e.preventDefault();
+            document.getElementById('survey-step-1').classList.add('d-none');
+            document.getElementById('survey-step-2').classList.remove('d-none');
+            
+            if (!map) initMap(); 
+            setTimeout(() => { map.invalidateSize(); }, 300); // Fixes map grey box bug when unhiding
+        }
+
+        function backToForm() {
+            document.getElementById('survey-step-2').classList.add('d-none');
+            document.getElementById('survey-step-1').classList.remove('d-none');
+        }
+
+        // --- GIS & Data Logic ---
+        let map, drawnPolygon, currentPoints = [], mapMarkers = [], activeParcels = [];
+
+        function initMap() {
+            const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxNativeZoom: 20, maxZoom: 22 });
+            const googleLabels = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxNativeZoom: 20, maxZoom: 22 });
+
+            map = L.map('map', { center: [20.9042, 74.7749], zoom: 17, maxZoom: 22, layers: [googleSat, googleLabels] });
+
+            map.on('click', function(e) {
+                currentPoints.push([e.latlng.lat, e.latlng.lng]);
+                const marker = L.circleMarker([e.latlng.lat, e.latlng.lng], { radius: 5, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 1 }).addTo(map);
+                mapMarkers.push(marker);
+
+                if (currentPoints.length >= 3) {
+                    if (drawnPolygon) map.removeLayer(drawnPolygon);
+                    const turfCoords = [...currentPoints, currentPoints[0]].map(c => [c[1], c[0]]); 
+                    const poly = turf.polygon([turfCoords]);
+                    document.getElementById('calc_area_sqft').innerText = (turf.area(poly) * 10.7639).toFixed(2);
+
+                    drawnPolygon = L.polygon(currentPoints, { color: '#2563eb', weight: 3, fillColor: '#3b82f6', fillOpacity: 0.4 }).addTo(map);
+                }
+            });
+        }
+
         async function searchLocation() {
             const query = document.getElementById('location-query').value.trim();
-            if (!query) return;
-
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lon = parseFloat(data[0].lon);
-                    map.flyTo([lat, lon], 19, { animate: true, duration: 1.5 });
-                } else {
-                    alert("Location not found. Please try entering the taluka or district name.");
-                }
-            } catch (err) {
-                console.error("Geocoding failed:", err);
-            }
-        }
-
-        // Add Points and Draw High-Accuracy Polygon
-        function addSurveyPoint(lat, lng) {
-            currentPoints.push([lat, lng]);
-            const marker = L.circleMarker([lat, lng], { radius: 4, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 0.9 }).addTo(map);
-            mapMarkers.push(marker);
-
-            document.getElementById('surv_points').value = currentPoints.map(p => `${p[0].toFixed(6)}, ${p[1].toFixed(6)}`).join('; ');
-
-            if (currentPoints.length >= 3) {
-                if (drawnPolygon) map.removeLayer(drawnPolygon);
-                
-                const closedCoords = [...currentPoints, currentPoints[0]];
-                const turfCoords = closedCoords.map(c => [c[1], c[0]]); // [Lng, Lat] for Turf
-                const poly = turf.polygon([turfCoords]);
-                const areaSqMeters = turf.area(poly);
-                const areaSqFt = areaSqMeters * 10.7639;
-
-                document.getElementById('calc_area_sqft').innerText = areaSqFt.toFixed(2);
-
-                drawnPolygon = L.polygon(currentPoints, {
-                    color: '#2563eb',
-                    weight: 2,
-                    fillColor: '#3b82f6',
-                    fillOpacity: 0.35
-                }).addTo(map);
-            }
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            if (data.length > 0) map.flyTo([data[0].lat, data[0].lon], 19);
         }
 
         function clearSurveyPoints() {
             currentPoints = [];
-            mapMarkers.forEach(m => map.removeLayer(m));
-            mapMarkers = [];
+            mapMarkers.forEach(m => map.removeLayer(m)); mapMarkers = [];
             if (drawnPolygon) map.removeLayer(drawnPolygon);
-            document.getElementById('surv_points').value = '';
             document.getElementById('calc_area_sqft').innerText = '0.00';
         }
 
-        // Submit Survey and Synchronize Instantly
-        async function handleSurveySubmit(e) {
-            e.preventDefault();
-            if (currentPoints.length < 3) {
-                alert("Please click at least 3 points on the satellite map to define the boundary.");
-                return;
-            }
+        async function submitFinalSurvey() {
+            if (currentPoints.length < 3) return alert("Please draw at least 3 points on the map.");
+            
+            const parcelId = document.getElementById('surv_parcel_id').value;
+            const payload = {
+                parcel_id: parcelId,
+                village_id: parseInt(document.getElementById('surv_village_id').value),
+                old_area: parseFloat(document.getElementById('surv_old_area').value),
+                new_area: parseFloat(document.getElementById('calc_area_sqft').innerText)
+            };
 
-            const parcelId = document.getElementById('surv_parcel_id').value.trim();
-            const villageId = parseInt(document.getElementById('surv_village_id').value);
-            const oldArea = parseFloat(document.getElementById('surv_old_area').value);
-            const newArea = parseFloat(document.getElementById('calc_area_sqft').innerText);
-            const rorRef = document.getElementById('surv_ror').value.trim();
-            const pointsText = currentPoints.map(p => `${p[0]},${p[1]}`).join(';');
-
-            try {
-                // Register base parcel
-                await fetch('/api/parcels/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ parcel_id: parcelId, village_id: villageId, old_area: oldArea, new_area: newArea })
-                });
-
-                // Record 7/12 metadata
-                await fetch('/api/parcels/old-record', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        parcel_id: parcelId, old_survey_no: rorRef, old_survey_year: 1985, old_method: "Chain",
-                        north_dim: 0, south_dim: 0, east_dim: 0, west_dim: 0, source_department: "Mahabhumi", reference_ror: rorRef
-                    })
-                });
-
-                // Attach GeoJSON geometry
-                await fetch('/api/parcels/modern-survey', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ parcel_id: parcelId, instrument_type: "RTK-DGPS", points_text: pointsText })
-                });
-
-                alert(`Parcel ${parcelId} successfully registered and mapped.`);
-                clearSurveyPoints();
-                document.getElementById('surveyForm').reset();
-                await fetchParcels(); // Trigger instant sync for Officer view
-            } catch (err) {
-                alert("Synchronization failed. Ensure the server is online.");
-            }
+            await fetch('/api/parcels/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            await fetch('/api/parcels/old-record', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ parcel_id: parcelId, old_survey_no: document.getElementById('surv_ror').value, old_survey_year: 1985, old_method: "Chain", north_dim: 0, south_dim: 0, east_dim: 0, west_dim: 0, source_department: "Mahabhumi", reference_ror: document.getElementById('surv_ror').value }) });
+            
+            alert(`Survey data for ${parcelId} successfully saved to the cloud database!`);
+            clearSurveyPoints(); document.getElementById('surveyForm').reset(); backToForm();
         }
 
-        // Fetch All Parcels & Populate Data Tables
         async function fetchParcels() {
-            try {
-                const res = await fetch('/api/parcels/list');
-                activeParcels = await res.json();
-                renderOfficerTable();
-                renderPolygonsOnMap();
-            } catch (err) {
-                console.error("Error retrieving parcels:", err);
-            }
-        }
-
-        function renderOfficerTable() {
+            const res = await fetch('/api/parcels/list');
+            activeParcels = await res.json();
             const tbody = document.getElementById('officer-table-body');
-            tbody.innerHTML = '';
-
-            if (activeParcels.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No parcels logged yet.</td></tr>';
-                return;
-            }
-
+            tbody.innerHTML = activeParcels.length ? '' : '<tr><td colspan="4" class="text-center text-muted">No pending surveys.</td></tr>';
+            
             activeParcels.forEach(p => {
-                const badgeClass = p.ai_risk_type === 'High Risk' ? 'risk-badge-high' : 'risk-badge-low';
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${p.parcel_id}</strong><br><small class="text-muted">${p.reference_ror || 'N/A'}</small></td>
-                    <td>${p.area_difference || 0} sq ft</td>
-                    <td><span class="${badgeClass}">${p.ai_risk_type}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="reviewParcel('${p.parcel_id}')">Inspect</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
+                const color = p.ai_risk_type === 'High Risk' ? 'bg-danger' : 'bg-success';
+                tbody.innerHTML += `<tr><td><strong>${p.parcel_id}</strong></td><td>${p.reference_ror}</td><td>${p.area_difference} sq ft</td><td><span class="badge ${color}">${p.ai_risk_type}</span></td></tr>`;
             });
         }
 
-        function renderPolygonsOnMap() {
-            activeParcels.forEach(p => {
-                if (p.geom_json) {
-                    try {
-                        const geom = JSON.parse(p.geom_json);
-                        L.geoJSON(geom, {
-                            style: {
-                                color: p.ai_risk_type === 'High Risk' ? '#dc2626' : '#16a34a',
-                                weight: 2,
-                                fillOpacity: 0.25
-                            }
-                        }).bindPopup(`<b>${p.parcel_id}</b><br>7/12: ${p.reference_ror || 'N/A'}<br>Status: ${p.verification_status}`).addTo(map);
-                    } catch(e){}
-                }
-            });
-        }
-
-        // Citizen Parcel Lookup
         function lookupCitizenParcel() {
             const query = document.getElementById('citizen-search-input').value.trim().toLowerCase();
-            const parcel = activeParcels.find(p => 
-                p.parcel_id.toLowerCase() === query || 
-                (p.reference_ror && p.reference_ror.toLowerCase() === query)
-            );
-
+            const parcel = activeParcels.find(p => p.parcel_id.toLowerCase() === query);
             if (parcel) {
                 document.getElementById('citizen-result-card').classList.remove('d-none');
-                document.getElementById('cit-ror-id').innerText = parcel.reference_ror || parcel.parcel_id;
-                document.getElementById('cit-diff').innerText = `${parcel.area_difference} sq ft (${parcel.ai_risk_type})`;
                 document.getElementById('cit-status').innerText = parcel.verification_status;
-                
-                if (parcel.geom_json) {
-                    const geom = JSON.parse(parcel.geom_json);
-                    const layer = L.geoJSON(geom);
-                    map.fitBounds(layer.getBounds(), { maxZoom: 20 });
-                }
-            } else {
-                alert("No land parcel found matching that Gat Number or Parcel ID.");
-            }
+                document.getElementById('cit-diff').innerText = `${parcel.area_difference} sq ft (${parcel.ai_risk_type})`;
+            } else alert("Parcel not found.");
         }
-
-        // Role Switching View Controller
-        function switchRole(role) {
-            ['surveyor', 'officer', 'citizen'].forEach(r => {
-                document.getElementById(`tab-${r}`).classList.remove('active');
-                document.getElementById(`view-${r}`).classList.add('d-none');
-            });
-
-            document.getElementById(`tab-${role}`).classList.add('active');
-            document.getElementById(`view-${role}`).classList.remove('d-none');
-
-            if (role === 'officer') fetchParcels();
-        }
-
-        window.onload = initMap;
     </script>
 </body>
 </html>
