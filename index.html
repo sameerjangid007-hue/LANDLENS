@@ -222,7 +222,7 @@
                             </div>
                         </div>
                         <div class="col-md-5 text-end">
-                            <span class="badge bg-light text-dark border me-1"><i class="bi bi-layers"></i> Esri Clarity HD</span>
+                            <span class="badge bg-light text-dark border me-1"><i class="bi bi-layers"></i> Google Satellite HD</span>
                             <span class="badge bg-light text-dark border"><i class="bi bi-zoom-in"></i> Sub-meter Zoom: 22x</span>
                         </div>
                     </div>
@@ -241,26 +241,26 @@
         let mapMarkers = [];
         let activeParcels = [];
 
-        // Initialize High-Resolution Map
+        // Initialize High-Resolution Map (Updated for Google Satellite)
         function initMap() {
-            // Base layer: High-Resolution Esri World Imagery supporting deep zoom
-            const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
-                maxNativeZoom: 19,
+            // Base layer: Google High-Resolution Satellite
+            const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                attribution: 'Map data &copy; Google',
+                maxNativeZoom: 20,
                 maxZoom: 22
             });
 
             // Road/Boundary Reference Overlay
-            const esriReference = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-                maxNativeZoom: 19,
+            const googleLabels = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
+                maxNativeZoom: 20,
                 maxZoom: 22
             });
 
             map = L.map('map', {
-                center: [20.9042, 74.7749], // Centered at survey hub coordinates
-                zoom: 18,
+                center: [20.9042, 74.7749], // Centered at Dhule survey hub
+                zoom: 17, 
                 maxZoom: 22,
-                layers: [esriImagery, esriReference]
+                layers: [googleSat, googleLabels]
             });
 
             // Capture clicks for surveyor polygon mapping
