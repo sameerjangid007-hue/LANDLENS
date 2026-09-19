@@ -1706,24 +1706,147 @@ function renderParcelTable(parcels, tableId, roleType){
 
 async function viewParcel(parcelId){
   try {
-    const parcel = await apiRequest("/api/parcels/get/" + encodeURIComponent(parcelId));
-    
-    const bodyEl = document.getElementById("parcelViewBody");
-    bodyEl.innerHTML = `
-      <div class="dossier-section">
-        <h5>Parcel ID: ${escapeHtml(parcel.parcel_id)}</h5>
-        <p><strong>Village ID:</strong> ${escapeHtml(parcel.village_id)}</p>
-        <p><strong>Old Area:</strong> ${formatNumber(parcel.old_area)} m²</p>
-        <p><strong>New Area:</strong> ${formatNumber(parcel.new_area || parcel.calculated_area)} m²</p>
-        <p><strong>Verification Status:</strong> ${statusBadge(parcel.verification_status || parcel.status || "PENDING")}</p>
+
+    // First check the database already loaded in Admin
+    let parcel = globalParcelsDatabase.find(
+      p => String(p.parcel_id) === String(parcelId)
+    );
+
+    // If not found, get it from backend
+    if(!parcel){
+      parcel = await apiRequest(
+        "/api/parcels/get/" + encodeURIComponent(parcelId)
+      );
+    }
+
+    if(!parcel){
+      showMessage("Parcel not found.", "warning");
+      return;
+    }
+
+    const oldArea = Number(parcel.old_area || 0);
+
+    const newArea = Number(
+      parcel.new_area ||
+      parcel.calculated_area ||
+      0
+    );
+
+    const difference = newArea - oldArea;
+
+    const status =
+      parcel.verification_status ||
+      parcel.status ||
+      "PENDING";
+
+    document.getElementById("parcelViewBody").innerHTML = `
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">Parcel ID</div>
+              <h5>${escapeHtml(parcel.parcel_id || "—")}</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">Village ID</div>
+              <h5>${escapeHtml(parcel.village_id ?? "—")}</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">Survey / Gat No.</div>
+              <h5>${escapeHtml(
+                parcel.gat_no || parcel.survey_no || "—"
+              )}</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">CTS No.</div>
+              <h5>${escapeHtml(parcel.cts_no || "—")}</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">Old Survey Method</div>
+              <h5>${escapeHtml(
+                parcel.old_survey_method || "—"
+              )}</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">Old Area</div>
+              <h5>${formatNumber(oldArea)} m²</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">New Area</div>
+              <h5>${formatNumber(newArea)} m²</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="small-muted">Area Difference</div>
+              <h5>${formatNumber(difference)} m²</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="small-muted">Verification Status</div>
+              <div class="mt-2">
+                ${statusBadge(status)}
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     `;
-    
-    bootstrap.Modal.getOrCreateInstance(
-      document.getElementById("parcelViewModal")
-    ).show();
-  } catch (err) {
-    showMessage("Could not load parcel: " + err.message, "danger");
+
+    const modalElement =
+      document.getElementById("parcelViewModal");
+
+    bootstrap.Modal
+      .getOrCreateInstance(modalElement)
+      .show();
+
+  } catch(err) {
+
+    console.error("View Parcel Error:", err);
+
+    showMessage(
+      "Could not load parcel: " + err.message,
+      "danger"
+    );
   }
 }
 
