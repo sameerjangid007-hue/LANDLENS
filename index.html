@@ -1,462 +1,1731 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LANDLENS Enterprise | SIH26010</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .navbar-gov { background-color: #1b365d; color: white; border-bottom: 3px solid #ffc107; }
-        .card-gov { border-top: 4px solid #1b365d; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        #map { height: 420px; border-radius: 8px; cursor: crosshair; border: 2px solid #dee2e6; z-index: 1; }
-        .dash-card { border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; transition: transform 0.2s; cursor: pointer; }
-        .dash-card:hover { transform: translateY(-5px); }
-        .dossier-label { font-size: 0.85rem; text-transform: uppercase; color: #6c757d; font-weight: bold; margin-bottom: 2px; }
-        .dossier-data { font-size: 1.1rem; font-weight: bold; color: #212529; margin-bottom: 15px; }
-        .chart-container { position: relative; height: 200px; width: 100%; }
-        .log-box { height: 200px; overflow-y: auto; background-color: #0a0a0a; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85rem; }
-        .log-entry { margin-bottom: 6px; border-bottom: 1px solid #333; padding-bottom: 4px; }
-        .hash-string { font-family: monospace; font-size: 0.85rem; background: #e9ecef; padding: 3px 6px; border-radius: 4px; word-break: break-all; }
-        
-        /* Info Button Style */
-        .info-btn { cursor: pointer; color: #0dcaf0; transition: 0.2s; }
-        .info-btn:hover { color: #087990; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LANDLENS Enterprise | SIH26010</title>
 
-        @media (max-width: 768px) {
-            #map { height: 300px; }
-            .btn { width: 100%; margin-bottom: 0.5rem; }
-            .dash-card { margin-bottom: 10px; }
-            .table-responsive { font-size: 0.85rem; }
-        }
-    </style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root{
+  --ll-primary:#123b63;
+  --ll-secondary:#1f6f8b;
+  --ll-bg:#f4f7fa;
+  --ll-card:#fff;
+  --ll-text:#1d2733;
+  --ll-muted:#687585;
+  --ll-border:#dfe6ed;
+  --ll-success:#198754;
+  --ll-warning:#d98c00;
+  --ll-danger:#c0392b;
+}
+body{background:var(--ll-bg);color:var(--ll-text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.navbar{background:var(--ll-primary)}
+.navbar-brand{font-weight:800;letter-spacing:.5px}
+.card{border:1px solid var(--ll-border);box-shadow:0 3px 12px rgba(20,40,60,.06);border-radius:14px}
+.card-header{background:#fff;border-bottom:1px solid var(--ll-border);font-weight:700}
+.workspace{display:none}
+.workspace.active{display:block}
+.role-badge{font-size:.78rem}
+#map{height:470px;border-radius:12px;border:1px solid var(--ll-border)}
+.small-muted{font-size:.82rem;color:var(--ll-muted)}
+.metric{font-size:1.55rem;font-weight:800}
+.status-pill{border-radius:999px;padding:.25rem .65rem;font-size:.75rem;font-weight:700}
+.status-pending{background:#fff3cd;color:#856404}
+.status-approved{background:#d1e7dd;color:#0f5132}
+.status-rejected{background:#f8d7da;color:#842029}
+.status-resurvey{background:#cff4fc;color:#055160}
+.status-review{background:#e2e3e5;color:#41464b}
+.quality-pass{color:var(--ll-success);font-weight:700}
+.quality-warning{color:var(--ll-warning);font-weight:700}
+.quality-error{color:var(--ll-danger);font-weight:700}
+#activityLog{max-height:240px;overflow:auto}
+.table td,.table th{vertical-align:middle}
+.drop-zone{border:2px dashed #b9c7d5;border-radius:12px;padding:25px;text-align:center;background:#fafcfe}
+.drop-zone:hover{background:#f2f7fb}
+#toastContainer{position:fixed;right:18px;bottom:18px;z-index:3000}
+.sync-indicator{font-size:.78rem}
+#offlineBanner{display:none}
+.dossier-section{border-bottom:1px solid var(--ll-border);padding-bottom:12px;margin-bottom:12px}
+pre{white-space:pre-wrap;word-break:break-word}
+@media(max-width:768px){
+  #map{height:360px}
+}
+</style>
 </head>
+
 <body>
-    <nav class="navbar navbar-gov navbar-dark px-3 py-2">
-        <a class="navbar-brand fw-bold fs-5" href="#">🏛️ LANDLENS</a>
-        <span id="userStatus" class="navbar-text text-warning fw-bold small">Status: Awaiting Login</span>
-    </nav>
 
-    <div class="container my-3">
-        <!-- 🔐 SECURE LOGIN SCREEN -->
-        <div id="loginScreen" class="row justify-content-center mt-4">
-            <div class="col-md-5 col-sm-12">
-                <div class="card card-gov p-4 shadow-lg">
-                    <h4 class="fw-bold mb-2 text-primary text-center">System Authentication</h4>
-                    <p class="text-muted mb-4 text-center small">SIH26010 Secure Gateway</p>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Select Access Level</label>
-                        <select id="roleSelect" class="form-select border-primary fw-bold text-primary" onchange="toggleAuthFields()">
-                            <option value="Farmer">🌾 Citizen / Farmer (Public)</option>
-                            <option value="Surveyor">📍 Field Surveyor (Entry)</option>
-                            <option value="Officer">🏛️ Authorized Officer (Audit)</option>
-                        </select>
-                    </div>
-                    <div id="authFields" class="d-none mb-3 p-3 bg-light border rounded">
-                        <h6 class="text-danger fw-bold mb-3 border-bottom pb-1">🚨 Restricted Access</h6>
-                        <input type="text" id="loginGovId" class="form-control mb-2" placeholder="Govt ID (e.g. GOV-SURV)">
-                        <input type="text" id="loginUsername" class="form-control mb-2" placeholder="Username">
-                        <input type="password" id="loginPassword" class="form-control" placeholder="Password">
-                    </div>
-                    <button class="btn btn-primary btn-lg w-100 fw-bold" onclick="login()">Login</button>
-                    <div id="loginHint" class="text-center mt-3 d-none"><small class="text-muted">Surveyor: <i>GOV-SURV | surveyor | pass123</i><br>Officer: <i>GOV-OFFICER | officer | pass123</i></small></div>
-                </div>
+<nav class="navbar navbar-dark navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#"><i class="bi bi-map"></i> LANDLENS</a>
+    <div class="d-flex align-items-center gap-2">
+      <span id="syncStatus" class="badge bg-light text-dark sync-indicator">Online</span>
+      <span id="userStatus" class="badge bg-secondary">Not logged in</span>
+      <button id="logoutBtn" class="btn btn-sm btn-outline-light d-none" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div id="offlineBanner" class="alert alert-warning rounded-0 mb-0 text-center">
+  <i class="bi bi-wifi-off"></i> Offline mode: new records will be stored locally and synchronized when connection returns.
+</div>
+
+<main class="container-fluid py-4">
+
+<!-- LOGIN -->
+<section id="loginWorkspace" class="workspace active">
+  <div class="row justify-content-center">
+    <div class="col-lg-5">
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h2 class="fw-bold">LANDLENS</h2>
+            <p class="text-muted mb-0">Enterprise Land Survey & Verification Platform</p>
+            <small class="text-muted">SIH26010 Prototype</small>
+          </div>
+
+          <div class="alert alert-info small">
+            <i class="bi bi-info-circle"></i>
+            Prototype login. Production authentication and role authorization are handled by the FastAPI backend.
+          </div>
+
+          <label class="form-label">Select Role</label>
+          <select id="loginRole" class="form-select mb-3">
+            <option value="FARMER">Farmer / Citizen</option>
+            <option value="SURVEYOR">Surveyor</option>
+            <option value="SURVEY_HEAD">Survey Head / Supervisor</option>
+            <option value="OFFICER">Authorized Officer</option>
+            <option value="ADMIN">Administrator</option>
+          </select>
+
+          <div id="credentialBox">
+            <div class="mb-3">
+              <label class="form-label">Government / User ID</label>
+              <input id="loginUser" class="form-control" placeholder="Enter user ID">
             </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input id="loginPassword" type="password" class="form-control" placeholder="Enter password">
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-100" onclick="login()">
+            <i class="bi bi-box-arrow-in-right"></i> Sign In
+          </button>
+
+          <div class="small text-muted mt-3">
+            Farmer/Citizen access is shown as a prototype flow. Do not use mock credentials in production.
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <!-- 🌍 MAIN APP SCREEN -->
-        <div id="appScreen" class="d-none">
-            
-            <div class="card card-gov p-2 shadow-sm mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2 px-2">
-                    <h6 class="fw-bold mb-0 text-primary">🗺️ GIS Viewport <span id="overlapAlert" class="badge bg-danger ms-2 d-none">Overlaps Detected!</span></h6>
-                    <button class="btn btn-outline-danger btn-sm fw-bold w-auto" onclick="logout()">Logout</button>
-                </div>
-                <div id="map"></div>
-            </div>
+<!-- FARMER -->
+<section id="farmerWorkspace" class="workspace">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3>Farmer / Citizen Portal</h3>
+      <p class="text-muted mb-0">View permitted parcel information and track survey requests.</p>
+    </div>
+  </div>
 
-            <!-- 🌾 FARMER WORKSPACE -->
-            <div id="farmerWorkspace" class="d-none mb-4">
-                <div class="card card-gov p-4 border-success">
-                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap">
-                        <h5 class="fw-bold text-success mb-0" id="lang-title">🔍 Find My Land Record</h5>
-                        <select class="form-select w-auto form-select-sm fw-bold" onchange="changeLanguage(this.value)">
-                            <option value="en">🌐 English</option>
-                            <option value="mr">🚩 मराठी (Marathi)</option>
-                            <option value="hi">🚩 हिंदी (Hindi)</option>
-                        </select>
-                    </div>
-                    
-                    <div id="otpSection" class="p-3 bg-light border rounded mb-3">
-                        <h6 class="fw-bold text-secondary mb-2" id="lang-otp-title">🔒 Aadhaar-Linked Mobile Verification</h6>
-                        <div class="d-flex gap-2 mb-2">
-                            <input type="text" id="mobileNo" class="form-control" placeholder="Enter Mobile Number">
-                            <button class="btn btn-secondary fw-bold w-auto" onclick="sendOTP()">Send OTP</button>
-                        </div>
-                        <div id="otpInputDiv" class="d-none d-flex gap-2">
-                            <input type="text" id="otpVal" class="form-control" placeholder="Enter OTP (Use 1234)">
-                            <button class="btn btn-success fw-bold w-auto" onclick="verifyOTP()">Verify</button>
-                        </div>
-                    </div>
-
-                    <div id="farmerSearchSection" class="d-none">
-                        <p class="text-muted small" id="lang-desc">Enter your Parcel ID / Gat Number below to securely view your surveyed boundary.</p>
-                        <div class="d-flex flex-wrap gap-2 mt-2">
-                            <input type="text" id="farmerSearchId" class="form-control flex-grow-1" placeholder="Parcel ID (e.g., PIM-100)" style="max-width: 300px;">
-                            <button class="btn btn-success fw-bold w-auto" id="lang-btn" onclick="searchFarmerParcel()">Search</button>
-                        </div>
-                        <div id="farmerResult" class="mt-3 text-dark fw-bold"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 📍 SURVEYOR WORKSPACE -->
-            <div id="surveyorWorkspace" class="d-none mb-4">
-                <div class="alert alert-warning d-flex justify-content-between align-items-center d-none" id="offlineAlert">
-                    <div><strong>📶 Offline Mode Active:</strong> Data caching locally.</div>
-                    <button class="btn btn-sm btn-dark fw-bold" onclick="syncOfflineData()">🔄 Sync <span id="offlineCount">0</span></button>
-                </div>
-
-                <div class="card card-gov p-4 mb-3">
-                    <h5 class="fw-bold text-primary border-bottom pb-2">📜 Register Legal Record <i class="bi bi-info-circle-fill info-btn fs-6 ms-2" onclick="alert('Step 1: Enter the historical data from the paper 7/12 records here before plotting the new boundary.')"></i></h5>
-                    <div class="row g-2">
-                        <div class="col-md-3 col-6"><label class="small fw-bold">Parcel ID <i class="bi bi-info-circle-fill info-btn" onclick="alert('Create a unique alphanumeric ID for this specific survey (e.g., PIM-200).')"></i></label><input type="text" id="parcelId" class="form-control form-control-sm" value="PIM-200"></div>
-                        <div class="col-md-3 col-6"><label class="small fw-bold">Village ID <i class="bi bi-info-circle-fill info-btn" onclick="alert('The 6-digit LGD Census code for the village.')"></i></label><input type="number" id="villageId" class="form-control form-control-sm" value="1"></div>
-                        <div class="col-md-3 col-6"><label class="small fw-bold">Old Area (sq ft) <i class="bi bi-info-circle-fill info-btn" onclick="alert('The area recorded in the old paper documents.')"></i></label><input type="number" id="oldArea" class="form-control form-control-sm" value="2500"></div>
-                        <div class="col-md-3 col-6"><label class="small fw-bold">New Area (sq ft) <i class="bi bi-info-circle-fill info-btn" onclick="alert('The new area calculated by your RTK or Total Station.')"></i></label><input type="number" id="newArea" class="form-control form-control-sm" value="2390"></div>
-                        <div class="col-md-3 col-6"><label class="small fw-bold">7/12 Gat No. <i class="bi bi-info-circle-fill info-btn" onclick="alert('The official legal survey number (e.g., Gat 45/1).')"></i></label><input type="text" id="rorRef" class="form-control form-control-sm" value="ROR-712"></div>
-                        <div class="col-md-3 col-6"><label class="small fw-bold">Year</label><input type="number" id="oldYear" class="form-control form-control-sm" value="1984"></div>
-                    </div>
-                    <button class="btn btn-success mt-3 fw-bold" onclick="registerParcelAndHistory()">Save Record Database</button>
-                    <div id="parcelResult" class="mt-2 text-success fw-bold small"></div>
-                </div>
-
-                <div class="card card-gov p-4">
-                    <h5 class="fw-bold text-primary border-bottom pb-2">🛰️ Modern GNSS Capture & Drone Mapping <i class="bi bi-info-circle-fill info-btn fs-6 ms-2" onclick="alert('Step 2: Plot the physical coordinates. You can upload a GeoJSON file from QGIS, draw manually on the map above, or generate a drone flight path.')"></i></h5>
-                    <div class="row g-2">
-                        <div class="col-md-5"><label class="small fw-bold">GeoJSON Upload <i class="bi bi-info-circle-fill info-btn" onclick="alert('Upload a .geojson file exported directly from QGIS or ArcGIS.')"></i></label><input type="file" id="geojsonFile" class="form-control form-control-sm border-info" accept=".geojson, .json" onchange="processGeoJSON(event)"></div>
-                        <div class="col-md-7"><div class="d-flex justify-content-between align-items-center mb-1"><label class="small fw-bold">Raw Boundaries <i class="bi bi-info-circle-fill info-btn" onclick="alert('Click Map Draw to tap points on the satellite map, or paste Lat/Lng coordinates directly into the box.')"></i></label><button class="btn btn-sm btn-outline-info text-dark fw-bold w-auto py-0" id="drawBtn" onclick="toggleDrawMode()">🖱️ Map Draw</button></div><textarea id="pointsText" class="form-control form-control-sm" rows="2" placeholder="Lat,Lng points..."></textarea></div>
-                    </div>
-                    <div class="d-flex gap-2 mt-3">
-                        <button class="btn btn-warning text-dark fw-bold w-50" onclick="submitModernSurvey()">Upload GIS Polygon</button>
-                        <button class="btn btn-dark fw-bold w-50" onclick="generateDronePath()">🚁 Gen. Flight Plan</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 🏛️ OFFICER WORKSPACE -->
-            <div id="officerWorkspace" class="d-none mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="fw-bold text-primary mb-0">Adjudication Command <i class="bi bi-info-circle-fill info-btn fs-6 ms-2" onclick="alert('Review pending surveys. Green means safe, Red means high-risk area variance or boundary overlap. Click a card to filter the table.')"></i></h5>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6 col-md-3"><div class="card dash-card bg-primary text-white p-2 text-center" onclick="applyFilter('ALL')"><h6 class="small mb-0">Total</h6><h3 class="mb-0 fw-bold" id="statTotal">0</h3></div></div>
-                    <div class="col-6 col-md-3"><div class="card dash-card bg-success text-white p-2 text-center" onclick="applyFilter('SAFE')"><h6 class="small mb-0">Safe</h6><h3 class="mb-0 fw-bold" id="statSafe">0</h3></div></div>
-                    <div class="col-6 col-md-3"><div class="card dash-card bg-danger text-white p-2 text-center" onclick="applyFilter('RISK')"><h6 class="small mb-0">Risk</h6><h3 class="mb-0 fw-bold" id="statRisk">0</h3></div></div>
-                    <div class="col-6 col-md-3"><div class="card dash-card bg-secondary text-white p-2 text-center" onclick="applyFilter('PENDING')"><h6 class="small mb-0">Pending</h6><h3 class="mb-0 fw-bold" id="statPending">0</h3></div></div>
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6"><div class="card card-gov p-2"><h6 class="fw-bold text-center text-muted small">Risk Distribution</h6><div class="chart-container"><canvas id="riskChart"></canvas></div></div></div>
-                    <div class="col-md-6"><div class="card card-gov p-2"><h6 class="fw-bold text-center text-muted small">Verification Status</h6><div class="chart-container"><canvas id="statusChart"></canvas></div></div></div>
-                </div>
-
-                <div class="card card-gov p-3 mb-3">
-                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                        <h6 class="fw-bold text-dark mb-0">🛡️ Immutable System Activity Log <i class="bi bi-info-circle-fill info-btn" onclick="alert('A legally binding, timestamped audit trail of every approval, rejection, and SMS dispatched by an officer.')"></i></h6>
-                        <span class="badge bg-dark">Live Encrypted Trail</span>
-                    </div>
-                    <div id="systemLogs" class="log-box"></div>
-                </div>
-
-                <div class="card card-gov p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                        <h6 class="fw-bold mb-0">📋 Audit Queue</h6>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <span id="currentFilterLabel" class="badge bg-primary d-flex align-items-center">Showing: ALL</span>
-                            <button class="btn btn-outline-dark btn-sm w-auto fw-bold" onclick="exportGeoJSON()">🌐 Export QGIS</button>
-                            <button class="btn btn-outline-success btn-sm w-auto" onclick="exportToCSV()">📥 CSV</button>
-                            <button class="btn btn-outline-primary btn-sm w-auto" onclick="loadParcelQueue()">🔄 Sync Cloud</button>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle mb-0">
-                            <thead class="table-dark small"><tr><th>Parcel ID</th><th>Diff</th><th>Overlap</th><th>Status</th><th>Actions</th></tr></thead>
-                            <tbody id="auditTableBody" class="small"><tr><td colspan="5" class="text-center text-muted">Loading...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div> 
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-person-check"></i> Mobile Verification</div>
+        <div class="card-body">
+          <div class="alert alert-warning small">
+            Prototype only — this is not Aadhaar authentication.
+          </div>
+          <label class="form-label">Registered Mobile Number</label>
+          <input id="farmerMobile" class="form-control mb-2" maxlength="10" placeholder="10-digit mobile">
+          <button class="btn btn-outline-primary btn-sm" onclick="sendMockOtp()">Send OTP</button>
+          <input id="farmerOtp" class="form-control mt-2" placeholder="Prototype OTP">
+          <button class="btn btn-primary btn-sm mt-2" onclick="verifyMockOtp()">Verify</button>
+          <div id="farmerVerificationStatus" class="small mt-2"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- 📄 MODALS -->
-    <div class="modal fade" id="parcelModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white"><h5 class="modal-title fw-bold fs-6">🏛️ Official Dossier</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body bg-light p-3">
-                    <div class="row text-center mb-3"><div class="col-6 border-end"><div class="text-muted small">Parcel</div><div class="fw-bold fs-5 text-primary" id="m-id">--</div></div><div class="col-6"><div class="text-muted small">Status</div><div id="m-status">--</div></div></div>
-                    <div class="card p-2 mb-2 border-0 shadow-sm"><div class="small fw-bold text-muted">AI Risk / Overlap</div><div id="m-risk" class="fw-bold">--</div></div>
-                    <div class="card p-2 mb-2 border-0 shadow-sm"><div class="small fw-bold text-muted border-bottom pb-1 mb-1">Area Metrics</div><div class="small"><strong>Old:</strong> <span id="m-oldArea">--</span> | <strong>New:</strong> <span class="text-success" id="m-newArea">--</span> | <strong>Diff:</strong> <span class="text-danger fw-bold" id="m-diff">--</span></div></div>
-                    <div class="card p-2 border-0 shadow-sm bg-warning text-dark mt-2"><div class="small fw-bold border-bottom border-dark pb-1 mb-1">🔒 Cryptographic Document Seal</div><div class="hash-string" id="m-hash">--</div></div>
-                </div>
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-search"></i> Search Parcel</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-9">
+              <input id="farmerParcelSearch" class="form-control" placeholder="Parcel ID or Gat Number">
             </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary w-100" onclick="searchFarmerParcel()">Search</button>
+            </div>
+          </div>
+          <div id="farmerResult" class="mt-3"></div>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SURVEYOR -->
+<section id="surveyorWorkspace" class="workspace">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3>Surveyor Workspace</h3>
+      <p class="text-muted mb-0">Register existing records, capture modern survey evidence and submit for review.</p>
+    </div>
+    <span class="badge bg-primary">SURVEYOR</span>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-file-earmark-text"></i> Existing Land Record</div>
+        <div class="card-body">
+          <div class="alert alert-secondary small">
+            Historical records are preserved as source evidence. They are not overwritten by modern survey data.
+          </div>
+
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label">Parcel ID *</label>
+              <input id="parcelId" class="form-control" placeholder="PIM-001">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Village ID *</label>
+              <input id="villageId" type="number" class="form-control" placeholder="2">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Survey / Gat No.</label>
+              <input id="gatNo" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">CTS No.</label>
+              <input id="ctsNo" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Old Area (m²) *</label>
+              <input id="oldArea" type="number" step="0.01" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Old Survey Year</label>
+              <input id="oldYear" type="number" class="form-control" placeholder="1985">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Old Survey Method</label>
+              <select id="oldMethod" class="form-select">
+                <option>Chain Survey</option>
+                <option>Plain Table</option>
+                <option>Other Historical Method</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Source / RoR Reference</label>
+              <input id="rorRef" class="form-control">
+            </div>
+          </div>
+
+          <hr>
+          <h6>Old Dimensions (m)</h6>
+          <div class="row g-2">
+            <div class="col-6"><input id="oldNorth" type="number" step="0.01" class="form-control" placeholder="North"></div>
+            <div class="col-6"><input id="oldSouth" type="number" step="0.01" class="form-control" placeholder="South"></div>
+            <div class="col-6"><input id="oldEast" type="number" step="0.01" class="form-control" placeholder="East"></div>
+            <div class="col-6"><input id="oldWest" type="number" step="0.01" class="form-control" placeholder="West"></div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Old Record Image / Document</label>
+            <input id="oldRecordFile" type="file" class="form-control" accept="image/*,.pdf">
+          </div>
+
+          <button class="btn btn-primary mt-3 w-100" onclick="registerExistingRecord()">
+            <i class="bi bi-database-add"></i> Save Existing Record
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><i class="bi bi-broadcast-pin"></i> Modern Survey Capture</div>
+        <div class="card-body">
+          <label class="form-label">Survey Method / Instrument</label>
+          <select id="modernMethod" class="form-select mb-3">
+            <option value="RTK GNSS">RTK / GNSS Rover</option>
+            <option value="Total Station">Total Station</option>
+            <option value="Drone / Orthophoto">Drone / Orthophoto</option>
+            <option value="Mobile GPS">Mobile GPS</option>
+          </select>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">New Surveyor Area (optional)</label>
+              <input id="manualNewArea" type="number" step="0.01" class="form-control" placeholder="Prefer calculated geometry">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Accuracy (m)</label>
+              <input id="surveyAccuracy" type="number" step="0.001" class="form-control" placeholder="e.g. 0.02">
+            </div>
+          </div>
+
+          <label class="form-label">Survey Observation Points</label>
+          <textarea id="rawBoundaries" class="form-control mb-3" rows="5"
+            placeholder="One point per line: latitude,longitude&#10;20.9001,74.7701&#10;20.9002,74.7705"></textarea>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-primary" onclick="toggleDrawMode()">
+              <i class="bi bi-pencil-square"></i> Draw Boundary
+            </button>
+            <label class="btn btn-outline-secondary mb-0">
+              <i class="bi bi-filetype-json"></i> Import GeoJSON
+              <input id="geojsonFile" type="file" accept=".geojson,.json,application/geo+json" hidden onchange="processGeoJSON(event)">
+            </label>
+          </div>
+
+          <div class="drop-zone mt-3">
+            <i class="bi bi-cloud-arrow-up fs-3"></i>
+            <div class="fw-semibold">Drone / Orthophoto Evidence</div>
+            <small class="text-muted">Upload imagery for the parcel case file. Processing/orthorectification should be performed by the GIS backend or approved processing workflow.</small>
+            <input id="droneFile" type="file" class="form-control mt-2" accept="image/*,.tif,.tiff,.jpg,.jpeg,.png">
+          </div>
+
+          <button class="btn btn-success mt-3 w-100" onclick="submitModernSurvey()">
+            <i class="bi bi-send-check"></i> Save & Submit Modern Survey
+          </button>
+
+          <button class="btn btn-outline-dark mt-2 w-100" onclick="generateDronePath()">
+            <i class="bi bi-airplane"></i> Generate Prototype Drone Flight Path
+          </button>
+
+          <div id="surveyCalculation" class="mt-3"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="modal fade" id="notifyModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-warning"><div class="modal-header bg-warning"><h5 class="modal-title fw-bold text-dark fs-6">📡 Draft Neighbor Alert</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="small text-danger fw-bold mb-1">Target Conflict Parcels:</p><p id="notifyNeighborsList" class="fw-bold text-dark"></p><hr><p class="small fw-bold text-muted mb-1">Auto-Generated SMS Draft:</p><div class="form-control bg-light text-dark small" style="white-space: pre-wrap; height: 120px; overflow-y: auto;" id="smsDraft"></div></div><div class="modal-footer p-2"><button class="btn btn-success w-100 fw-bold" onclick="dispatchAlerts()" data-bs-dismiss="modal">Dispatch SMS</button></div></div></div></div>
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between">
+          <span><i class="bi bi-globe2"></i> GIS Survey Map</span>
+          <span id="drawStatus" class="small-muted">Ready</span>
+        </div>
+        <div class="card-body">
+          <div id="map"></div>
+          <div class="row mt-3 g-2">
+            <div class="col-md-4">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <div class="small-muted">Calculated Area</div>
+                  <div id="mapArea" class="metric">—</div>
+                  <small>m²</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <div class="small-muted">Perimeter</div>
+                  <div id="mapPerimeter" class="metric">—</div>
+                  <small>m</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <div class="small-muted">Geometry</div>
+                  <div id="geometryStatus" class="fw-bold">Not loaded</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="qualityResult" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- 📄 UPGRADED PDF TEMPLATE -->
-    <div id="pdfTemplate" class="d-none bg-white text-dark p-4" style="width: 700px; font-family: serif;">
-        <div class="text-center border-bottom border-2 border-dark pb-2 mb-3">
-            <h3 class="fw-bold text-uppercase mb-0">State Department of Land Records</h3>
-            <p class="text-muted fw-bold small mb-1">SIH26010 LANDLENS Taskforce</p>
-            <p class="mb-0"><strong>NOTICE OF LAND BOUNDARY DISCREPANCY</strong></p>
-        </div>
-        <div class="mb-3 d-flex justify-content-between small">
-            <span><strong>Date:</strong> <span id="pdf-date"></span></span>
-            <span><strong>Ref:</strong> LL-REJ-<span id="pdf-ref"></span></span>
-        </div>
-        <p class="small">To the stakeholder of Parcel: <strong id="pdf-parcel" class="fs-6"></strong>,</p>
-        <p class="small">Your recent digital land resurvey has been flagged by the AI Auditing Engine and is <strong>REJECTED</strong> due to high-risk variances or spatial overlaps.</p>
-        
-        <table class="table table-bordered border-dark table-sm text-center small mb-3">
-            <thead class="table-light"><tr><th>Old Area</th><th>New Area</th><th>Discrepancy</th></tr></thead>
-            <tbody><tr><td id="pdf-old"></td><td id="pdf-new"></td><td id="pdf-diff" class="fw-bold text-danger"></td></tr></tbody>
+<!-- SURVEY HEAD -->
+<section id="surveyHeadWorkspace" class="workspace">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3>Survey Head / Supervisor</h3>
+      <p class="text-muted mb-0">Assign, monitor and return surveys for correction.</p>
+    </div>
+    <span class="badge bg-info text-dark">SURVEY HEAD</span>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Total Parcels</div><div id="shTotal" class="metric">0</div></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Pending Review</div><div id="shPending" class="metric">0</div></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Resurvey Required</div><div id="shResurvey" class="metric">0</div></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Approved</div><div id="shApproved" class="metric">0</div></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Survey Review Queue</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover" id="surveyHeadTable">
+          <thead><tr><th>Parcel</th><th>Area</th><th>Quality</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody></tbody>
         </table>
-        
-        <div class="p-2 border border-dark mb-3 text-center">
-            <p class="small fw-bold mb-1 border-bottom border-dark pb-1">📍 Extracted Spatial Geometry Bounds</p>
-            <p class="small mb-0 text-muted" id="pdf-geom" style="font-family: monospace; font-size: 0.75rem; word-break: break-all;"></p>
-        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <p class="small mb-1"><strong>Overlap Detected:</strong> <span id="pdf-overlap">No</span></p>
-        
-        <div class="p-2 border border-secondary bg-light mt-4">
-            <p class="small mb-0 fw-bold">🔒 Cryptographic SHA-256 Validation Hash:</p>
-            <p class="small mb-0" id="pdf-hash" style="font-family: monospace; word-break: break-all;"></p>
+<!-- OFFICER -->
+<section id="officerWorkspace" class="workspace">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3>Officer Command Centre</h3>
+      <p class="text-muted mb-0">Review evidence, quality checks and survey history before the configured official decision.</p>
+    </div>
+    <span class="badge bg-dark">AUTHORIZED OFFICER</span>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Total Parcels</div><div id="totalCount" class="metric">0</div></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Quality Review</div><div id="riskCount" class="metric">0</div></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Pending Verification</div><div id="pendingCount" class="metric">0</div></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="small-muted">Approved</div><div id="approvedCount" class="metric">0</div></div></div></div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-6"><div class="card"><div class="card-header">Review Status</div><div class="card-body"><canvas id="statusChart" height="180"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="card"><div class="card-header">Quality / Discrepancy Indicators</div><div class="card-body"><canvas id="riskChart" height="180"></canvas></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-clipboard-check"></i> Audit / Verification Queue</span>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()">CSV Export</button>
+        <button class="btn btn-sm btn-outline-primary" onclick="exportGeoJSON()">GeoJSON Export</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="loadSavedPolygons()">Refresh</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover" id="officerTable">
+          <thead>
+            <tr>
+              <th>Parcel</th>
+              <th>Old Area</th>
+              <th>New Area</th>
+              <th>Difference</th>
+              <th>Quality</th>
+              <th>Overlap</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header"><i class="bi bi-clock-history"></i> System Activity / Audit Events</div>
+    <div class="card-body">
+      <div class="alert alert-secondary small mb-2">
+        This panel displays browser-side prototype events. Production audit logging must be server-side and append-only.
+      </div>
+      <div id="activityLog"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section id="adminWorkspace" class="workspace">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3>Administration</h3>
+      <p class="text-muted mb-0">Prototype administrative dashboard. Actual permissions must be enforced by FastAPI.</p>
+    </div>
+    <span class="badge bg-danger">ADMIN</span>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4"><div class="card"><div class="card-body"><h5>Users & Roles</h5><p class="text-muted">Manage users, roles and permissions through backend administration.</p></div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body"><h5>System Integrations</h5><p class="text-muted">Configure approved government/GIS data integrations and APIs.</p></div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body"><h5>Audit & Backup</h5><p class="text-muted">Production audit logs, backups, retention and recovery policies.</p></div></div></div>
+  </div>
+</section>
+
+</main>
+
+<!-- DOSSIER MODAL -->
+<div class="modal fade" id="dossierModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-folder2-open"></i> Parcel Digital Case File</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="dossierContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* ============================================================
+   LANDLENS FRONTEND
+   Render-compatible:
+   API calls intentionally use relative paths: /api/...
+   ============================================================ */
+
+let currentUserRole = "";
+let currentGovId = "";
+let accessToken = "";
+let map;
+let drawnLayer = null;
+let tempPolyline = null;
+let isDrawing = false;
+let drawnPoints = [];
+let mapPolygons = {};
+let globalParcelsDatabase = [];
+let riskChartInst = null;
+let statusChartInst = null;
+let droneFlightPath = null;
+let currentGeoJSON = null;
+
+const API = ""; // Same Render origin. Do NOT change to localhost.
+
+document.addEventListener("DOMContentLoaded", () => {
+  initializeMap();
+  updateOnlineStatus();
+  window.addEventListener("online", updateOnlineStatus);
+  window.addEventListener("offline", updateOnlineStatus);
+  document.getElementById("loginRole").addEventListener("change", updateLoginFields);
+  updateLoginFields();
+});
+
+function apiUrl(path){
+  return API + path;
+}
+
+function showToast(message, type="info"){
+  const el = document.createElement("div");
+  el.className = `alert alert-${type} shadow mb-2`;
+  el.innerHTML = message;
+  document.getElementById("toastContainer").appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function addLog(action){
+  const log = document.getElementById("activityLog");
+  if(!log) return;
+  const row = document.createElement("div");
+  row.className = "border-bottom py-2 small";
+  row.innerHTML = `<strong>${new Date().toLocaleString()}</strong> — ${escapeHtml(action)}`;
+  log.prepend(row);
+}
+
+function escapeHtml(value){
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function updateOnlineStatus(){
+  const online = navigator.onLine;
+  const status = document.getElementById("syncStatus");
+  const banner = document.getElementById("offlineBanner");
+  status.textContent = online ? "Online" : "Offline";
+  status.className = "badge " + (online ? "bg-success" : "bg-warning text-dark");
+  banner.style.display = online ? "none" : "block";
+  if(online) syncOfflineData();
+}
+
+function updateLoginFields(){
+  const role = document.getElementById("loginRole").value;
+  document.getElementById("credentialBox").style.display =
+    role === "FARMER" ? "none" : "block";
+}
+
+/* ---------------- AUTH ---------------- */
+
+async function login(){
+  const role = document.getElementById("loginRole").value;
+  const user = document.getElementById("loginUser").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  if(role === "FARMER"){
+    currentUserRole = "FARMER";
+    currentGovId = "CITIZEN";
+    showWorkspace("farmerWorkspace");
+    updateHeader();
+    return;
+  }
+
+  if(!user || !password){
+    showToast("Enter user ID and password.", "warning");
+    return;
+  }
+
+  /*
+    Production path:
+    FastAPI OAuth2 endpoint is /api/auth/login.
+    The browser sends username/password to the backend.
+    Role is read from the returned JWT/backend response, not trusted from UI.
+  */
+  try{
+    const form = new URLSearchParams();
+    form.append("username", user);
+    form.append("password", password);
+
+    const response = await fetch(apiUrl("/api/auth/login"), {
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:form
+    });
+
+    if(response.ok){
+      const data = await response.json();
+      accessToken = data.access_token || "";
+      localStorage.setItem("landlens_access_token", accessToken);
+
+      /*
+        The current backend may only return the token.
+        Until a /me endpoint is available, retain the selected role
+        for the prototype UI. Server-side authorization remains authoritative.
+      */
+      currentUserRole = role;
+      currentGovId = user;
+      showWorkspaceForRole(role);
+      updateHeader();
+      addLog(`Login successful for ${role}`);
+      await loadSavedPolygons();
+      return;
+    }
+
+    /*
+      Development fallback is intentionally not automatic.
+      This prevents a fake frontend credential system from bypassing
+      backend authentication on Render.
+    */
+    showToast("Backend authentication failed. Check the FastAPI login endpoint and credentials.", "danger");
+  }catch(error){
+    showToast("Could not connect to the Render backend.", "danger");
+    console.error(error);
+  }
+}
+
+function updateHeader(){
+  document.getElementById("userStatus").textContent =
+    currentGovId ? `${currentGovId} • ${currentUserRole}` : "Not logged in";
+  document.getElementById("logoutBtn").classList.toggle("d-none", !currentUserRole);
+}
+
+function showWorkspaceForRole(role){
+  const mapRoles = {
+    FARMER:"farmerWorkspace",
+    SURVEYOR:"surveyorWorkspace",
+    SURVEY_HEAD:"surveyHeadWorkspace",
+    OFFICER:"officerWorkspace",
+    ADMIN:"adminWorkspace"
+  };
+  showWorkspace(mapRoles[role] || "loginWorkspace");
+
+  if(role === "OFFICER" || role === "SURVEY_HEAD"){
+    loadSavedPolygons();
+  }
+}
+
+function showWorkspace(id){
+  document.querySelectorAll(".workspace").forEach(x => x.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  setTimeout(() => {
+    if(map) map.invalidateSize();
+  }, 100);
+}
+
+function logout(){
+  accessToken = "";
+  currentUserRole = "";
+  currentGovId = "";
+  localStorage.removeItem("landlens_access_token");
+  showWorkspace("loginWorkspace");
+  updateHeader();
+}
+
+/* ---------------- AUTH FETCH HELPER ---------------- */
+
+async function apiFetch(path, options={}){
+  const headers = options.headers ? {...options.headers} : {};
+  if(accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+
+  if(options.body && typeof options.body === "object" && !(options.body instanceof FormData)){
+    headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(options.body);
+  }
+
+  return fetch(apiUrl(path), {...options, headers});
+}
+
+/* ---------------- MAP ---------------- */
+
+function initializeMap(){
+  map = L.map("map").setView([20.9047,74.7754], 16);
+
+  const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19,
+    attribution:"© OpenStreetMap contributors"
+  }).addTo(map);
+
+  L.control.layers({"OpenStreetMap":osm}).addTo(map);
+
+  map.on("click", handleMapClick);
+}
+
+function handleMapClick(e){
+  if(!isDrawing) return;
+
+  drawnPoints.push([e.latlng.lat, e.latlng.lng]);
+
+  if(tempPolyline) map.removeLayer(tempPolyline);
+  tempPolyline = L.polyline(drawnPoints, {dashArray:"6,6"}).addTo(map);
+
+  if(drawnPoints.length >= 3){
+    const coords = drawnPoints.map(p => [p[1],p[0]]);
+    coords.push(coords[0]);
+
+    if(drawnLayer) map.removeLayer(drawnLayer);
+
+    drawnLayer = L.polygon(
+      drawnPoints.map(p => [p[0],p[1]]),
+      {color:"#0d6efd", fillOpacity:.15}
+    ).addTo(map);
+
+    calculateCurrentGeometry(coords);
+  }
+}
+
+function toggleDrawMode(){
+  if(isDrawing){
+    stopDrawing();
+    return;
+  }
+
+  isDrawing = true;
+  drawnPoints = [];
+  if(tempPolyline) map.removeLayer(tempPolyline);
+  if(drawnLayer) map.removeLayer(drawnLayer);
+
+  document.getElementById("drawStatus").textContent = "Drawing — click boundary points";
+  showToast("Click parcel boundary points on the map. Click Draw Boundary again to finish.", "info");
+}
+
+function stopDrawing(){
+  isDrawing = false;
+  if(tempPolyline) map.removeLayer(tempPolyline);
+  tempPolyline = null;
+
+  document.getElementById("drawStatus").textContent =
+    drawnPoints.length >= 3 ? "Boundary captured" : "Ready";
+
+  if(drawnPoints.length >= 3){
+    const coords = drawnPoints.map(p => [p[1],p[0]]);
+    coords.push(coords[0]);
+    currentGeoJSON = {
+      type:"Feature",
+      properties:{source:"manual"},
+      geometry:{type:"Polygon",coordinates:[coords]}
+    };
+    calculateCurrentGeometry(coords);
+  }
+}
+
+function calculateCurrentGeometry(coords){
+  try{
+    const polygon = turf.polygon([coords]);
+    const area = turf.area(polygon);
+    const perimeter = turf.length(turf.lineString(coords), {units:"meters"});
+
+    document.getElementById("mapArea").textContent = area.toFixed(2);
+    document.getElementById("mapPerimeter").textContent = perimeter.toFixed(2);
+    document.getElementById("geometryStatus").textContent = "Valid polygon";
+
+    runQualityChecks(polygon, area);
+    document.getElementById("surveyCalculation").innerHTML = `
+      <div class="alert alert-success mb-0">
+        <strong>Geometry calculated:</strong>
+        Area ${area.toFixed(2)} m² | Perimeter ${perimeter.toFixed(2)} m
+      </div>`;
+  }catch(error){
+    document.getElementById("geometryStatus").textContent = "Invalid";
+    document.getElementById("qualityResult").innerHTML =
+      `<div class="alert alert-danger">Geometry calculation failed. Check boundary points and CRS.</div>`;
+  }
+}
+
+/* ---------------- GEOJSON ---------------- */
+
+async function processGeoJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  try{
+    const text = await file.text();
+    const json = JSON.parse(text);
+
+    let feature;
+
+    if(json.type === "FeatureCollection"){
+      feature = json.features.find(f =>
+        f.geometry &&
+        ["Polygon","MultiPolygon"].includes(f.geometry.type)
+      );
+    }else if(json.type === "Feature"){
+      feature = json;
+    }else if(["Polygon","MultiPolygon"].includes(json.type)){
+      feature = {type:"Feature",properties:{},geometry:json};
+    }
+
+    if(!feature || !feature.geometry){
+      throw new Error("No Polygon or MultiPolygon geometry found.");
+    }
+
+    currentGeoJSON = feature;
+
+    if(drawnLayer) map.removeLayer(drawnLayer);
+
+    drawnLayer = L.geoJSON(feature, {
+      style:{color:"#198754",weight:3,fillOpacity:.15}
+    }).addTo(map);
+
+    map.fitBounds(drawnLayer.getBounds());
+
+    const area = turf.area(feature);
+    let perimeter = null;
+
+    if(feature.geometry.type === "Polygon"){
+      perimeter = turf.length(turf.lineString(feature.geometry.coordinates[0]), {units:"meters"});
+    }
+
+    document.getElementById("mapArea").textContent = area.toFixed(2);
+    document.getElementById("mapPerimeter").textContent =
+      perimeter ? perimeter.toFixed(2) : "—";
+    document.getElementById("geometryStatus").textContent = "Imported GeoJSON";
+
+    runQualityChecks(feature, area);
+
+    document.getElementById("surveyCalculation").innerHTML = `
+      <div class="alert alert-success">
+        GeoJSON imported successfully.<br>
+        Calculated area: <strong>${area.toFixed(2)} m²</strong>
+        ${perimeter ? `| Perimeter: <strong>${perimeter.toFixed(2)} m</strong>` : ""}
+      </div>`;
+
+    addLog(`GeoJSON imported: ${file.name}`);
+  }catch(error){
+    console.error(error);
+    showToast("Invalid GeoJSON: " + error.message, "danger");
+  }
+}
+
+/* ---------------- QUALITY CHECKS ---------------- */
+
+function runQualityChecks(feature, area){
+  const checks = [];
+  let errors = 0;
+  let warnings = 0;
+
+  try{
+    const valid = turf.booleanValid(feature);
+    checks.push({
+      name:"Geometry validity",
+      status:valid ? "PASS" : "ERROR"
+    });
+    if(!valid) errors++;
+  }catch{
+    checks.push({name:"Geometry validity",status:"REVIEW REQUIRED"});
+    warnings++;
+  }
+
+  if(area <= 0){
+    checks.push({name:"Positive area",status:"ERROR"});
+    errors++;
+  }else{
+    checks.push({name:"Positive area",status:"PASS"});
+  }
+
+  if(area > 1000000){
+    checks.push({name:"Large-area threshold",status:"WARNING"});
+    warnings++;
+  }else{
+    checks.push({name:"Area threshold",status:"PASS"});
+  }
+
+  const html = `
+    <div class="card bg-light">
+      <div class="card-body">
+        <h6>Survey Quality Checks</h6>
+        ${checks.map(c => `
+          <div class="d-flex justify-content-between border-bottom py-1">
+            <span>${escapeHtml(c.name)}</span>
+            <span class="${
+              c.status==="PASS" ? "quality-pass" :
+              c.status==="WARNING" ? "quality-warning" :
+              "quality-error"
+            }">${c.status}</span>
+          </div>`).join("")}
+        <div class="small mt-2">
+          ${errors ? `<span class="text-danger">${errors} error(s)</span>` : "No geometry errors detected."}
+          ${warnings ? `<span class="text-warning ms-2">${warnings} warning(s)</span>` : ""}
         </div>
-        <p class="small text-muted mt-4 pt-2 text-end">___________________________<br>Ar. Vikas Jangid<br>Authorized Officer</p>
+      </div>
+    </div>`;
+
+  document.getElementById("qualityResult").innerHTML = html;
+}
+
+/* ---------------- EXISTING RECORD ---------------- */
+
+async function registerExistingRecord(){
+  const parcelId = document.getElementById("parcelId").value.trim();
+  const villageId = Number(document.getElementById("villageId").value);
+  const oldArea = Number(document.getElementById("oldArea").value);
+
+  if(!parcelId || !villageId || !oldArea){
+    showToast("Parcel ID, Village ID and Old Area are required.", "warning");
+    return;
+  }
+
+  const payload = {
+    parcel_id: parcelId,
+    survey_no: document.getElementById("gatNo").value || null,
+    gat_no: document.getElementById("gatNo").value || null,
+    cts_no: document.getElementById("ctsNo").value || null,
+    village_id: villageId,
+    old_area: oldArea,
+    new_area: Number(document.getElementById("manualNewArea").value || oldArea),
+    old_survey_method: document.getElementById("oldMethod").value,
+    new_survey_method: document.getElementById("modernMethod").value,
+    audit_notes: `Historical record year: ${document.getElementById("oldYear").value || "Not specified"}; RoR reference: ${document.getElementById("rorRef").value || "Not specified"}`
+  };
+
+  if(!navigator.onLine){
+    queueOffline({type:"parcel_register",payload});
+    showToast("Saved to offline queue.", "warning");
+    return;
+  }
+
+  try{
+    const response = await apiFetch("/api/parcels/register", {
+      method:"POST",
+      body:payload
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if(response.ok){
+      addLog(`Existing parcel record saved: ${parcelId}`);
+      showToast("Existing record saved successfully.", "success");
+      await loadSavedPolygons();
+    }else{
+      showToast(data.detail || "Could not save existing record.", "danger");
+    }
+  }catch(error){
+    console.error(error);
+    queueOffline({type:"parcel_register",payload});
+    showToast("Connection failed. Record placed in offline queue.", "warning");
+  }
+}
+
+/* ---------------- MODERN SURVEY ---------------- */
+
+async function submitModernSurvey(){
+  const parcelId = document.getElementById("parcelId").value.trim();
+  const method = document.getElementById("modernMethod").value;
+  const raw = document.getElementById("rawBoundaries").value.trim();
+
+  if(!parcelId){
+    showToast("Enter Parcel ID first.", "warning");
+    return;
+  }
+
+  let pointsText = raw;
+
+  if(!pointsText && drawnPoints.length){
+    pointsText = drawnPoints.map(p => `${p[0]},${p[1]}`).join("\n");
+  }
+
+  if(!pointsText && currentGeoJSON){
+    pointsText = JSON.stringify(currentGeoJSON.geometry.coordinates);
+  }
+
+  if(!pointsText){
+    showToast("Provide survey points, draw a boundary or import GeoJSON.", "warning");
+    return;
+  }
+
+  let calculatedArea = null;
+
+  if(currentGeoJSON){
+    calculatedArea = turf.area(currentGeoJSON);
+  }else if(drawnPoints.length >= 3){
+    const coords = drawnPoints.map(p => [p[1],p[0]]);
+    coords.push(coords[0]);
+    calculatedArea = turf.area(turf.polygon([coords]));
+  }
+
+  const payload = {
+    parcel_id: parcelId,
+    instrument_type: method,
+    points_text: pointsText,
+    accuracy_m: Number(document.getElementById("surveyAccuracy").value) || null,
+    calculated_area: calculatedArea,
+    submitted_by: currentGovId || "SURVEYOR",
+    survey_timestamp: new Date().toISOString()
+  };
+
+  if(!navigator.onLine){
+    queueOffline({type:"modern_survey",payload});
+    showToast("Survey saved to offline queue.", "warning");
+    return;
+  }
+
+  try{
+    const response = await apiFetch("/api/parcels/modern-survey", {
+      method:"POST",
+      body:payload
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if(response.ok){
+      addLog(`Modern ${method} survey submitted for ${parcelId}`);
+      showToast("Modern survey saved.", "success");
+      await loadSavedPolygons();
+    }else{
+      showToast(data.detail || "Modern survey endpoint rejected the payload. Check backend schema.", "danger");
+    }
+  }catch(error){
+    console.error(error);
+    queueOffline({type:"modern_survey",payload});
+    showToast("Connection failed. Survey placed in offline queue.", "warning");
+  }
+}
+
+/* ---------------- OFFLINE ---------------- */
+
+function queueOffline(item){
+  const queue = JSON.parse(localStorage.getItem("landlens_offline") || "[]");
+  queue.push({
+    id:crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+    created_at:new Date().toISOString(),
+    retries:0,
+    ...item
+  });
+  localStorage.setItem("landlens_offline", JSON.stringify(queue));
+}
+
+async function syncOfflineData(){
+  const queue = JSON.parse(localStorage.getItem("landlens_offline") || "[]");
+  if(!queue.length || !navigator.onLine) return;
+
+  const remaining = [];
+
+  for(const item of queue){
+    try{
+      const endpoint =
+        item.type === "parcel_register"
+          ? "/api/parcels/register"
+          : "/api/parcels/modern-survey";
+
+      const response = await apiFetch(endpoint, {
+        method:"POST",
+        body:item.payload
+      });
+
+      if(!response.ok){
+        item.retries = (item.retries || 0) + 1;
+        remaining.push(item);
+      }else{
+        addLog(`Offline item synchronized: ${item.id}`);
+      }
+    }catch{
+      item.retries = (item.retries || 0) + 1;
+      remaining.push(item);
+    }
+  }
+
+  localStorage.setItem("landlens_offline", JSON.stringify(remaining));
+
+  if(queue.length !== remaining.length){
+    showToast(`${queue.length - remaining.length} offline item(s) synchronized.`, "success");
+    loadSavedPolygons();
+  }
+}
+
+/* ---------------- DRONE FLIGHT PLAN ---------------- */
+
+function generateDronePath(){
+  if(!currentGeoJSON && drawnPoints.length < 3){
+    showToast("Create/import a parcel boundary first.", "warning");
+    return;
+  }
+
+  let feature = currentGeoJSON;
+
+  if(!feature){
+    const coords = drawnPoints.map(p => [p[1],p[0]]);
+    coords.push(coords[0]);
+    feature = turf.polygon([coords]);
+  }
+
+  const bbox = turf.bbox(feature);
+  const [minX,minY,maxX,maxY] = bbox;
+  const lines = [];
+  const steps = 6;
+
+  for(let i=0;i<steps;i++){
+    const y = minY + ((maxY-minY) * i / (steps-1));
+    const start = i % 2 === 0 ? [minX,y] : [maxX,y];
+    const end = i % 2 === 0 ? [maxX,y] : [minX,y];
+    lines.push([start,end]);
+  }
+
+  const fc = turf.featureCollection(lines.map(x => turf.lineString(x)));
+
+  if(droneFlightPath) map.removeLayer(droneFlightPath);
+  droneFlightPath = L.geoJSON(fc,{
+    style:{color:"#dc3545",weight:2,dashArray:"5,5"}
+  }).addTo(map);
+
+  map.fitBounds(droneFlightPath.getBounds());
+
+  addLog("Prototype drone flight path generated.");
+  showToast("Prototype flight path generated. This is not actual drone control or orthophoto processing.", "info");
+}
+
+/* ---------------- PARCEL LIST ---------------- */
+
+async function loadSavedPolygons(){
+  try{
+    const response = await apiFetch("/api/parcels/list");
+
+    if(!response.ok){
+      console.warn("Parcel list failed", response.status);
+      return;
+    }
+
+    const data = await response.json();
+    globalParcelsDatabase = Array.isArray(data) ? data :
+      (data.parcels || data.items || []);
+
+    clearSavedPolygons();
+    detectOverlaps();
+
+    if(currentUserRole === "OFFICER") renderOfficerQueue();
+    if(currentUserRole === "SURVEY_HEAD") renderSurveyHeadQueue();
+
+  }catch(error){
+    console.error("loadSavedPolygons",error);
+  }
+}
+
+function clearSavedPolygons(){
+  Object.values(mapPolygons).forEach(layer => {
+    try{ map.removeLayer(layer); }catch{}
+  });
+  mapPolygons = {};
+}
+
+function getParcelGeometry(parcel){
+  if(parcel.geom_json){
+    try{
+      return typeof parcel.geom_json === "string"
+        ? JSON.parse(parcel.geom_json)
+        : parcel.geom_json;
+    }catch{}
+  }
+
+  if(parcel.geometry){
+    return typeof parcel.geometry === "string"
+      ? JSON.parse(parcel.geometry)
+      : parcel.geometry;
+  }
+
+  return null;
+}
+
+function detectOverlaps(){
+  for(let i=0;i<globalParcelsDatabase.length;i++){
+    const p = globalParcelsDatabase[i];
+    p.has_overlap = false;
+
+    const geometry = getParcelGeometry(p);
+    if(!geometry) continue;
+
+    const feature = geometry.type === "Feature"
+      ? geometry
+      : {type:"Feature",properties:{},geometry};
+
+    const layer = L.geoJSON(feature,{
+      style:{
+        color: parcelColor(p),
+        weight:2,
+        fillOpacity:.18
+      }
+    }).addTo(map);
+
+    mapPolygons[p.parcel_id] = layer;
+
+    for(let j=i+1;j<globalParcelsDatabase.length;j++){
+      const q = globalParcelsDatabase[j];
+      const qGeometry = getParcelGeometry(q);
+      if(!qGeometry) continue;
+
+      try{
+        const qFeature = qGeometry.type === "Feature"
+          ? qGeometry
+          : {type:"Feature",properties:{},geometry:qGeometry};
+
+        if(turf.booleanIntersects(feature,qFeature)){
+          p.has_overlap = true;
+          q.has_overlap = true;
+        }
+      }catch{}
+    }
+  }
+
+  Object.entries(mapPolygons).forEach(([pid,layer]) => {
+    const parcel = globalParcelsDatabase.find(x => String(x.parcel_id) === String(pid));
+    if(parcel){
+      layer.setStyle({color:parcelColor(parcel)});
+    }
+  });
+}
+
+function parcelColor(parcel){
+  if(parcel.has_overlap) return "#d97706";
+  const status = String(parcel.verification_status || parcel.status || "").toLowerCase();
+  if(status.includes("approved")) return "#198754";
+  if(status.includes("rejected")) return "#dc3545";
+  if(status.includes("resurvey")) return "#0dcaf0";
+  return "#0d6efd";
+}
+
+/* ---------------- OFFICER QUEUE ---------------- */
+
+function renderOfficerQueue(){
+  const tbody = document.querySelector("#officerTable tbody");
+  if(!tbody) return;
+
+  let review=0,pending=0,approved=0;
+
+  tbody.innerHTML = globalParcelsDatabase.map(p => {
+    const oldArea = Number(p.old_area || 0);
+    const newArea = Number(p.new_area || p.calculated_area || 0);
+    const diff = newArea - oldArea;
+    const pct = oldArea ? (diff/oldArea)*100 : null;
+
+    const status = p.verification_status || p.status || "PENDING";
+    const quality = p.quality_status || (p.has_overlap ? "REVIEW REQUIRED" : "PASS");
+
+    if(quality !== "PASS") review++;
+    if(status.toLowerCase().includes("approved")) approved++;
+    if(!status.toLowerCase().includes("approved") && !status.toLowerCase().includes("rejected")) pending++;
+
+    return `
+      <tr>
+        <td><strong>${escapeHtml(p.parcel_id)}</strong></td>
+        <td>${oldArea.toFixed(2)}</td>
+        <td>${newArea.toFixed(2)}</td>
+        <td>${diff.toFixed(2)} ${pct !== null ? `(${pct.toFixed(2)}%)` : ""}</td>
+        <td>${qualityBadge(quality)}</td>
+        <td>${p.has_overlap ? '<span class="badge bg-warning text-dark">Spatial overlap</span>' : '<span class="badge bg-success">None detected</span>'}</td>
+        <td>${statusBadge(status)}</td>
+        <td>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary" onclick="openDossier('${escapeAttr(p.parcel_id)}')">View</button>
+            <button class="btn btn-outline-success" onclick="updateStatus('${escapeAttr(p.parcel_id)}','APPROVED')">Approve</button>
+            <button class="btn btn-outline-warning" onclick="updateStatus('${escapeAttr(p.parcel_id)}','RESURVEY REQUIRED')">Resurvey</button>
+            <button class="btn btn-outline-danger" onclick="updateStatus('${escapeAttr(p.parcel_id)}','REJECTED')">Reject</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+
+  document.getElementById("totalCount").textContent = globalParcelsDatabase.length;
+  document.getElementById("riskCount").textContent = review;
+  document.getElementById("pendingCount").textContent = pending;
+  document.getElementById("approvedCount").textContent = approved;
+
+  renderCharts();
+}
+
+function renderSurveyHeadQueue(){
+  const tbody = document.querySelector("#surveyHeadTable tbody");
+  if(!tbody) return;
+
+  let pending=0,resurvey=0,approved=0;
+
+  tbody.innerHTML = globalParcelsDatabase.map(p => {
+    const status = p.verification_status || p.status || "PENDING";
+    if(status.toLowerCase().includes("approved")) approved++;
+    if(status.toLowerCase().includes("resurvey")) resurvey++;
+    if(!status.toLowerCase().includes("approved") && !status.toLowerCase().includes("rejected")) pending++;
+
+    return `
+      <tr>
+        <td>${escapeHtml(p.parcel_id)}</td>
+        <td>${Number(p.new_area || p.old_area || 0).toFixed(2)} m²</td>
+        <td>${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</td>
+        <td>${statusBadge(status)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="openDossier('${escapeAttr(p.parcel_id)}')">Review</button>
+          <button class="btn btn-sm btn-outline-warning" onclick="updateStatus('${escapeAttr(p.parcel_id)}','RESURVEY REQUIRED')">Return</button>
+        </td>
+      </tr>`;
+  }).join("");
+
+  document.getElementById("shTotal").textContent = globalParcelsDatabase.length;
+  document.getElementById("shPending").textContent = pending;
+  document.getElementById("shResurvey").textContent = resurvey;
+  document.getElementById("shApproved").textContent = approved;
+}
+
+function qualityBadge(value){
+  const v = String(value || "REVIEW REQUIRED").toUpperCase();
+  if(v==="PASS") return '<span class="badge bg-success">PASS</span>';
+  if(v.includes("ERROR")) return '<span class="badge bg-danger">ERROR</span>';
+  return '<span class="badge bg-warning text-dark">REVIEW REQUIRED</span>';
+}
+
+function statusBadge(value){
+  const v = String(value || "PENDING").toUpperCase();
+  if(v.includes("APPROVED")) return '<span class="status-pill status-approved">APPROVED</span>';
+  if(v.includes("REJECTED")) return '<span class="status-pill status-rejected">REJECTED</span>';
+  if(v.includes("RESURVEY")) return '<span class="status-pill status-resurvey">RESURVEY REQUIRED</span>';
+  if(v.includes("UNDER REVIEW")) return '<span class="status-pill status-review">UNDER REVIEW</span>';
+  return '<span class="status-pill status-pending">PENDING</span>';
+}
+
+function escapeAttr(value){
+  return String(value ?? "").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+}
+
+/* ---------------- STATUS UPDATE ---------------- */
+
+async function updateStatus(parcelId,status){
+  if(!["OFFICER","SURVEY_HEAD"].includes(currentUserRole)){
+    showToast("Only authorized review roles can update this status.", "danger");
+    return;
+  }
+
+  if(currentUserRole === "SURVEY_HEAD" && status === "APPROVED"){
+    showToast("Survey Head can review/return the survey. Final approval belongs to the authorized officer.", "warning");
+    return;
+  }
+
+  try{
+    const response = await apiFetch("/api/parcels/update-status",{
+      method:"POST",
+      body:{
+        parcel_id:parcelId,
+        verification_status:`${status} by ${currentGovId}`,
+        reviewer_role:currentUserRole,
+        updated_at:new Date().toISOString()
+      }
+    });
+
+    const data = await response.json().catch(()=>({}));
+
+    if(response.ok){
+      addLog(`${status}: ${parcelId}`);
+      showToast(`${parcelId} updated to ${status}.`, "success");
+      await loadSavedPolygons();
+    }else{
+      showToast(data.detail || "Status update failed. Backend authorization/schema may need updating.", "danger");
+    }
+  }catch(error){
+    console.error(error);
+    showToast("Could not connect to the backend.", "danger");
+  }
+}
+
+/* ---------------- DOSSIER ---------------- */
+
+function openDossier(parcelId){
+  const p = globalParcelsDatabase.find(x => String(x.parcel_id) === String(parcelId));
+  if(!p) return;
+
+  const oldArea = Number(p.old_area || 0);
+  const newArea = Number(p.new_area || p.calculated_area || 0);
+  const diff = newArea-oldArea;
+  const pct = oldArea ? diff/oldArea*100 : null;
+
+  document.getElementById("dossierContent").innerHTML = `
+    <div class="dossier-section">
+      <h5>${escapeHtml(p.parcel_id)}</h5>
+      <div class="row g-2">
+        <div class="col-md-4"><strong>Survey/Gat No:</strong><br>${escapeHtml(p.gat_no || p.survey_no || "—")}</div>
+        <div class="col-md-4"><strong>CTS No:</strong><br>${escapeHtml(p.cts_no || "—")}</div>
+        <div class="col-md-4"><strong>Village ID:</strong><br>${escapeHtml(p.village_id || "—")}</div>
+      </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    
-    <script>
-        let currentTableFilter = 'ALL'; let mapPolygons = {}; let tempPolyline; let isDrawing = false; let drawnPoints = []; let currentUserRole = ""; let currentGovId = "";
-        let globalParcelsDatabase = []; let riskChartInst = null; let statusChartInst = null; let droneFlightPath = null;
-        
-        const i18n = {
-            en: { title: "🔍 Find My Land Record", desc: "Enter your Parcel ID / Gat Number below to securely view your surveyed boundary.", btn: "Search", found: "✅ Parcel found!", notF: "❌ Parcel not found.", otpT: "🔒 Aadhaar-Linked Mobile Verification" },
-            mr: { title: "🔍 माझा सातबारा / जमीन नोंद शोधा", desc: "तुमचा गट क्रमांक / पार्सल आयडी खाली टाका आणि तुमची हद्द तपासा.", btn: "नोंद शोधा", found: "✅ नोंद सापडली!", notF: "❌ नोंद सापडली नाही.", otpT: "🔒 आधार संलग्न मोबाईल पडताळणी" },
-            hi: { title: "🔍 अपना भूमि रिकॉर्ड खोजें", desc: "नीचे अपना पार्सल आईडी / गट नंबर दर्ज करें...", btn: "रिकॉर्ड खोजें", found: "✅ रिकॉर्ड मिल गया!", notF: "❌ रिकॉर्ड नहीं मिला।", otpT: "🔒 आधार लिंक्ड मोबाइल सत्यापन" }
-        };
-        let currentLang = 'en';
-        function changeLanguage(lang) {
-            currentLang = lang; document.getElementById('lang-title').innerText = i18n[lang].title; document.getElementById('lang-desc').innerText = i18n[lang].desc; document.getElementById('lang-btn').innerText = i18n[lang].btn; document.getElementById('lang-otp-title').innerText = i18n[lang].otpT;
-        }
+    <div class="dossier-section">
+      <h6>Historical Record</h6>
+      <div class="row g-2">
+        <div class="col-md-3">Old Area<br><strong>${oldArea.toFixed(2)} m²</strong></div>
+        <div class="col-md-3">Method<br><strong>${escapeHtml(p.old_survey_method || "—")}</strong></div>
+        <div class="col-md-3">Year<br><strong>${escapeHtml(p.old_survey_year || "—")}</strong></div>
+        <div class="col-md-3">RoR Ref.<br><strong>${escapeHtml(p.reference_ror || "—")}</strong></div>
+      </div>
+    </div>
 
-        function addLog(act) { const b = document.getElementById('systemLogs'); if(b) b.innerHTML = `<div class="log-entry"><span class="log-time">[${new Date().toLocaleTimeString()}]</span> <span class="fw-bold text-warning">${currentGovId||'SYS'}:</span> <span class="log-action">${act}</span></div>` + b.innerHTML; }
-        function generateSHA256(data) { return CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex).toUpperCase(); }
+    <div class="dossier-section">
+      <h6>Modern Survey</h6>
+      <div class="row g-2">
+        <div class="col-md-4">New Area<br><strong>${newArea.toFixed(2)} m²</strong></div>
+        <div class="col-md-4">Difference<br><strong>${diff.toFixed(2)} m²</strong></div>
+        <div class="col-md-4">Percentage<br><strong>${pct !== null ? pct.toFixed(2)+"%" : "—"}</strong></div>
+        <div class="col-md-6">Method<br><strong>${escapeHtml(p.new_survey_method || p.instrument_type || "—")}</strong></div>
+        <div class="col-md-6">Accuracy<br><strong>${p.accuracy_m ? escapeHtml(p.accuracy_m)+" m" : "—"}</strong></div>
+      </div>
+    </div>
 
-        const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 21 });
-        const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 21 });
-        let map = L.map('map', { center: [20.9047, 74.7754], zoom: 16, layers: [googleHybrid] });
-        L.control.layers({ "Hybrid": googleHybrid, "Satellite": googleSat }).addTo(map);
-        tempPolyline = L.polyline([], {color: '#ffc107', dashArray: '5, 5', weight: 3}).addTo(map);
+    <div class="dossier-section">
+      <h6>GIS / Quality</h6>
+      <p>Spatial overlap:
+        ${p.has_overlap
+          ? '<strong class="text-warning">Detected — requires field/legal verification</strong>'
+          : '<strong class="text-success">No overlap detected in current dataset</strong>'}
+      </p>
+      <p>Quality status: ${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</p>
+      <p class="small text-muted">Spatial overlap is an analytical GIS result and is not, by itself, a legal encroachment finding.</p>
+    </div>
 
-        function toggleAuthFields() { if (document.getElementById('roleSelect').value === 'Farmer') { document.getElementById('authFields').classList.add('d-none'); document.getElementById('loginHint').classList.add('d-none'); } else { document.getElementById('authFields').classList.remove('d-none'); document.getElementById('loginHint').classList.remove('d-none'); } }
+    <div class="dossier-section">
+      <h6>Workflow Status</h6>
+      ${statusBadge(p.verification_status || p.status || "PENDING")}
+    </div>
 
-        function login() {
-            currentUserRole = document.getElementById('roleSelect').value; currentGovId = document.getElementById('loginGovId').value.trim();
-            const user = document.getElementById('loginUsername').value.trim(), pass = document.getElementById('loginPassword').value.trim();
-            if (currentUserRole !== 'Farmer') {
-                if (!currentGovId || !user || !pass) return alert("❌ All fields required!");
-                if (currentUserRole === 'Officer' && (currentGovId !== 'GOV-OFFICER' || user !== 'officer' || pass !== 'pass123')) return alert("❌ Invalid Credentials!");
-                if (currentUserRole === 'Surveyor' && (currentGovId !== 'GOV-SURV' || user !== 'surveyor' || pass !== 'pass123')) return alert("❌ Invalid Credentials!");
-            } else currentGovId = "Citizen";
+    <div class="dossier-section">
+      <h6>Audit / Source Notes</h6>
+      <pre class="bg-light p-3 rounded">${escapeHtml(p.audit_notes || p.remark || "No notes available.")}</pre>
+    </div>
 
-            document.getElementById('loginScreen').classList.add('d-none'); document.getElementById('appScreen').classList.remove('d-none');
-            document.getElementById('userStatus').innerHTML = `Role: ${currentUserRole} | ID: ${currentGovId}`; setTimeout(() => { map.invalidateSize(); }, 300);
-            
-            document.getElementById('farmerWorkspace').classList.add('d-none'); document.getElementById('surveyorWorkspace').classList.add('d-none'); document.getElementById('officerWorkspace').classList.add('d-none');
-            for (let key in mapPolygons) { map.removeLayer(mapPolygons[key]); } mapPolygons = {};
+    <div class="d-flex gap-2 flex-wrap">
+      ${currentUserRole==="OFFICER" ? `
+        <button class="btn btn-success" onclick="updateStatus('${escapeAttr(p.parcel_id)}','APPROVED'); closeDossier()">Approve</button>
+        <button class="btn btn-warning" onclick="updateStatus('${escapeAttr(p.parcel_id)}','RESURVEY REQUIRED'); closeDossier()">Request Resurvey</button>
+        <button class="btn btn-danger" onclick="updateStatus('${escapeAttr(p.parcel_id)}','REJECTED'); closeDossier()">Reject</button>
+      ` : ""}
+      <button class="btn btn-outline-primary" onclick="zoomToParcel('${escapeAttr(p.parcel_id)}')">Show on Map</button>
+    </div>
+  `;
 
-            if (currentUserRole === 'Officer') { document.getElementById('officerWorkspace').classList.remove('d-none'); loadParcelQueue(); addLog(`Officer Authenticated.`); } 
-            else if (currentUserRole === 'Surveyor') { document.getElementById('surveyorWorkspace').classList.remove('d-none'); loadSavedPolygons(); checkOfflineStatus(); window.addEventListener('online', checkOfflineStatus); window.addEventListener('offline', checkOfflineStatus); } 
-            else if (currentUserRole === 'Farmer') { document.getElementById('farmerWorkspace').classList.remove('d-none'); }
-        }
-        function logout() { location.reload(); }
+  new bootstrap.Modal(document.getElementById("dossierModal")).show();
+}
 
-        function sendOTP() {
-            const mob = document.getElementById('mobileNo').value;
-            if(mob.length < 10) return alert("Enter valid 10-digit mobile number.");
-            document.getElementById('otpInputDiv').classList.remove('d-none');
-            alert("OTP sent via SMS (Mock Aadhaar Auth).");
-        }
-        function verifyOTP() {
-            const val = document.getElementById('otpVal').value;
-            if(val === "1234") {
-                document.getElementById('otpSection').classList.add('d-none');
-                document.getElementById('farmerSearchSection').classList.remove('d-none');
-                alert("✅ Aadhaar Verification Successful!");
-            } else alert("❌ Invalid OTP.");
-        }
+function closeDossier(){
+  const modal = bootstrap.Modal.getInstance(document.getElementById("dossierModal"));
+  if(modal) modal.hide();
+}
 
-        async function searchFarmerParcel() {
-            const sid = document.getElementById('farmerSearchId').value.trim().toUpperCase(); if (!sid) return;
-            for (let key in mapPolygons) map.removeLayer(mapPolygons[key]); mapPolygons = {};
-            const res = await fetch('/api/parcels/list'); const parcels = await res.json();
-            const found = parcels.find(p => p.parcel_id.toUpperCase() === sid);
-            if (found && found.geom_json) {
-                let latlngs = JSON.parse(found.geom_json).coordinates[0].map(c => [c[1], c[0]]);
-                let poly = L.polygon(latlngs, { color: '#0dcaf0', fillColor: '#1b365d', fillOpacity: 0.5, weight: 3 }).addTo(map);
-                poly.bindPopup(`<b>${found.parcel_id}</b><br>${found.verification_status}`); mapPolygons[found.parcel_id] = poly; flyToParcel(found.parcel_id);
-                document.getElementById('farmerResult').innerText = i18n[currentLang].found;
-            } else document.getElementById('farmerResult').innerText = i18n[currentLang].notF;
-        }
+function zoomToParcel(parcelId){
+  const layer = mapPolygons[parcelId];
+  if(layer){
+    map.fitBounds(layer.getBounds());
+    closeDossier();
+  }
+}
 
-        let offlineQueue = JSON.parse(localStorage.getItem('landlens_offline') || '[]');
-        function checkOfflineStatus() {
-            const alertBox = document.getElementById('offlineAlert');
-            if (!navigator.onLine) { alertBox.classList.remove('d-none'); document.getElementById('offlineCount').innerText = offlineQueue.length; } 
-            else { if(offlineQueue.length > 0) { alertBox.classList.remove('d-none'); document.getElementById('offlineCount').innerText = offlineQueue.length; } else { alertBox.classList.add('d-none'); } }
-        }
+/* ---------------- FARMER ---------------- */
 
-        async function registerParcelAndHistory() {
-            const pid = document.getElementById('parcelId').value;
-            const b = { parcel_id: pid, village_id: 1, old_area: parseFloat(document.getElementById('oldArea').value), new_area: parseFloat(document.getElementById('newArea').value) };
-            if(!navigator.onLine) { offlineQueue.push({ type: 'register', data: b }); localStorage.setItem('landlens_offline', JSON.stringify(offlineQueue)); checkOfflineStatus(); document.getElementById('parcelResult').innerText = `⚠️ Saved locally (Offline).`; return; }
-            try { await fetch('/api/parcels/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(b) }); document.getElementById('parcelResult').innerText = `✅ Entry Saved: ${pid}`; } catch(e) { offlineQueue.push({ type: 'register', data: b }); localStorage.setItem('landlens_offline', JSON.stringify(offlineQueue)); checkOfflineStatus(); }
-        }
+function sendMockOtp(){
+  const mobile = document.getElementById("farmerMobile").value.trim();
+  if(!/^\d{10}$/.test(mobile)){
+    showToast("Enter a valid 10-digit mobile number.", "warning");
+    return;
+  }
+  document.getElementById("farmerVerificationStatus").innerHTML =
+    '<span class="text-primary">Prototype OTP sent. Demo OTP: 1234</span>';
+}
 
-        function toggleDrawMode() {
-            isDrawing = !isDrawing;
-            if (isDrawing) { document.getElementById('drawBtn').innerText = "🛑 Stop"; document.getElementById('pointsText').value = ""; drawnPoints = []; tempPolyline.setLatLngs([]); if(droneFlightPath) map.removeLayer(droneFlightPath); } 
-            else { document.getElementById('drawBtn').innerText = "🖱️ Draw"; if(drawnPoints.length > 2){ let ls = tempPolyline.getLatLngs(); ls.push(ls[0]); tempPolyline.setLatLngs(ls); } }
-        }
-        map.on('click', function(e) { if (!isDrawing) return; const lat = e.latlng.lat.toFixed(5), lng = e.latlng.lng.toFixed(5); drawnPoints.push(`${lat},${lng}`); document.getElementById('pointsText').value = drawnPoints.join(';'); tempPolyline.addLatLng([lat, lng]); });
+function verifyMockOtp(){
+  const otp = document.getElementById("farmerOtp").value.trim();
+  const el = document.getElementById("farmerVerificationStatus");
 
-        function generateDronePath() {
-            if(drawnPoints.length < 3) return alert("Draw a polygon boundary first to generate a flight plan.");
-            let coords = drawnPoints.map(p => { let pts = p.split(','); return [parseFloat(pts[1]), parseFloat(pts[0])]; }); coords.push(coords[0]);
-            let poly = turf.polygon([coords]); let bbox = turf.bbox(poly);
-            let path = []; let steps = 6; let lngStep = (bbox[2] - bbox[0]) / steps;
-            for(let i=0; i<=steps; i++) {
-                let lng = bbox[0] + (i * lngStep);
-                if(i%2 === 0) { path.push([bbox[1], lng]); path.push([bbox[3], lng]); } else { path.push([bbox[3], lng]); path.push([bbox[1], lng]); }
-            }
-            if(droneFlightPath) map.removeLayer(droneFlightPath);
-            droneFlightPath = L.polyline(path.map(c => [c[0], c[1]]), {color: '#0dcaf0', dashArray: '10, 15', weight: 3}).addTo(map);
-            alert("🚁 Drone RTK Grid Path Generated!"); map.fitBounds(droneFlightPath.getBounds());
-        }
+  if(otp === "1234"){
+    el.innerHTML = '<span class="text-success fw-bold">Prototype verification successful.</span>';
+  }else{
+    el.innerHTML = '<span class="text-danger">Invalid prototype OTP.</span>';
+  }
+}
 
-        async function submitModernSurvey() {
-            const pid = document.getElementById('parcelId').value, payload = { parcel_id: pid, instrument_type: "RTK", points_text: document.getElementById('pointsText').value };
-            if(!navigator.onLine) { offlineQueue.push({ type: 'survey', data: payload }); localStorage.setItem('landlens_offline', JSON.stringify(offlineQueue)); checkOfflineStatus(); alert("⚠️ Saved locally (Offline)."); return; }
-            try { await fetch('/api/parcels/modern-survey', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); alert("✅ Points Saved!"); loadSavedPolygons(); tempPolyline.setLatLngs([]); if(droneFlightPath) map.removeLayer(droneFlightPath); } catch(e) { offlineQueue.push({ type: 'survey', data: payload }); localStorage.setItem('landlens_offline', JSON.stringify(offlineQueue)); checkOfflineStatus(); }
-        }
+async function searchFarmerParcel(){
+  const query = document.getElementById("farmerParcelSearch").value.trim().toLowerCase();
+  if(!query){
+    showToast("Enter Parcel ID or Gat Number.", "warning");
+    return;
+  }
 
-        async function syncOfflineData() {
-            if(!navigator.onLine) return alert("Still offline. Reconnect to Wi-Fi.");
-            if(offlineQueue.length === 0) return;
-            for(let item of offlineQueue) { let endp = item.type === 'register' ? 'register' : 'modern-survey'; await fetch(`/api/parcels/${endp}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(item.data) }); }
-            offlineQueue = []; localStorage.setItem('landlens_offline', '[]'); checkOfflineStatus(); alert("✅ Synced!"); loadSavedPolygons();
-        }
+  try{
+    const response = await apiFetch("/api/parcels/list");
+    const data = await response.json();
+    const parcels = Array.isArray(data) ? data : (data.parcels || data.items || []);
 
-        function exportGeoJSON() {
-            let features = globalParcelsDatabase.filter(p => p.geom_json).map(p => { return { "type": "Feature", "properties": { "parcel_id": p.parcel_id, "status": p.verification_status, "risk": p.ai_risk_type, "area": p.new_area }, "geometry": JSON.parse(p.geom_json) }; });
-            let fc = { "type": "FeatureCollection", "features": features };
-            let blob = new Blob([JSON.stringify(fc, null, 2)], {type: "application/json"});
-            let link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = "LandLens_GIS_Export.geojson"; link.click(); addLog("Exported Master GeoJSON Database for QGIS/ArcGIS mapping.");
-        }
+    const p = parcels.find(x =>
+      String(x.parcel_id || "").toLowerCase() === query ||
+      String(x.gat_no || x.survey_no || "").toLowerCase() === query
+    );
 
-        async function loadSavedPolygons() {
-            if(currentUserRole === "Farmer") return;
-            const res = await fetch('/api/parcels/list'); const parcels = await res.json();
-            for (let key in mapPolygons) { map.removeLayer(mapPolygons[key]); } mapPolygons = {}; let hasGlobalOverlap = false;
+    if(!p){
+      document.getElementById("farmerResult").innerHTML =
+        '<div class="alert alert-warning">No permitted parcel found.</div>';
+      return;
+    }
 
-            parcels.forEach(p => {
-                if (p.geom_json) {
-                    const geoObj = JSON.parse(p.geom_json);
-                    if (geoObj.type === "Polygon") {
-                        let turfPoly = turf.polygon(geoObj.coordinates); let isOver = false; let neighbors = [];
-                        parcels.forEach(other => { if(other.parcel_id !== p.parcel_id && other.geom_json) { if(turf.intersect(turfPoly, turf.polygon(JSON.parse(other.geom_json).coordinates))) { isOver = true; hasGlobalOverlap = true; neighbors.push(other.parcel_id); } } });
-                        p.has_overlap = isOver; p.overlap_neighbors = neighbors; p.crypto_hash = generateSHA256(p.parcel_id + p.new_area + p.geom_json);
-                        let poly = L.polygon(geoObj.coordinates[0].map(c => [c[1], c[0]]), { color: isOver?'#ff6b00':(p.ai_risk_score>50?'#dc3545':'#0dcaf0'), fillColor: isOver?'#ff6b00':'#1b365d', fillOpacity: 0.5, weight: isOver ? 5 : 3 }).addTo(map);
-                        poly.bindPopup(`<b>${p.parcel_id}</b><br>${isOver ? '<span class="text-danger">⚠️ OVERLAP</span>' : p.verification_status}`); mapPolygons[p.parcel_id] = poly; 
-                    }
-                }
-            });
-            if(hasGlobalOverlap && currentUserRole === 'Officer') { document.getElementById('overlapAlert').classList.remove('d-none'); } else { document.getElementById('overlapAlert').classList.add('d-none'); }
-            if(currentUserRole === 'Officer') { globalParcelsDatabase = parcels; renderQueueTable(parcels); }
-        }
+    const geometry = getParcelGeometry(p);
 
-        function updateCharts(safe, risk, pend, app, rej) {
-            if(riskChartInst) riskChartInst.destroy(); riskChartInst = new Chart(document.getElementById('riskChart').getContext('2d'), { type: 'doughnut', data: { labels: ['Safe', 'Risk'], datasets: [{ data: [safe, risk], backgroundColor: ['#198754', '#dc3545'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {boxWidth:10} } } } });
-            if(statusChartInst) statusChartInst.destroy(); statusChartInst = new Chart(document.getElementById('statusChart').getContext('2d'), { type: 'bar', data: { labels: ['Pend', 'Appr', 'Rej'], datasets: [{ data: [pend, app, rej], backgroundColor: ['#6c757d', '#0dcaf0', '#dc3545'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-        }
-        function applyFilter(f) { currentTableFilter = f; loadSavedPolygons(); }
+    document.getElementById("farmerResult").innerHTML = `
+      <div class="card bg-light">
+        <div class="card-body">
+          <h5>${escapeHtml(p.parcel_id)}</h5>
+          <div class="row">
+            <div class="col-md-4">Village ID<br><strong>${escapeHtml(p.village_id || "—")}</strong></div>
+            <div class="col-md-4">Area<br><strong>${Number(p.new_area || p.old_area || 0).toFixed(2)} m²</strong></div>
+            <div class="col-md-4">Status<br>${statusBadge(p.verification_status || p.status || "PENDING")}</div>
+          </div>
+          <p class="small text-muted mt-3 mb-0">
+            Citizen view only. Official geometry and legal records can be changed only through authorized government workflow.
+          </p>
+        </div>
+      </div>`;
 
-        function renderQueueTable(parcels) {
-            let sC=0, rC=0, pC=0, appC=0, rejC=0; const tbody = document.getElementById('auditTableBody'); tbody.innerHTML = '';
-            parcels.forEach(p => {
-                if (p.ai_risk_score <= 50) sC++; else rC++;
-                if (p.verification_status.includes('Pending')) pC++;
-                if (p.verification_status.includes('Approved')) appC++;
-                if (p.verification_status.includes('Rejected')) rejC++;
-                if (currentTableFilter === 'ALL' || (currentTableFilter === 'SAFE' && p.ai_risk_score <= 50) || (currentTableFilter === 'RISK' && p.ai_risk_score > 50) || (currentTableFilter === 'PENDING' && p.verification_status.includes('Pending'))) {
-                    let overTag = p.has_overlap ? '<span class="badge bg-danger">YES</span>' : '<span class="badge bg-secondary">NO</span>';
-                    let nBtn = (p.ai_risk_score > 50 || p.has_overlap || p.verification_status.includes('Rejected')) ? `<button class="btn btn-sm btn-outline-dark p-1 mx-1" onclick="generateNotice('${p.parcel_id}')" title="Generate PDF Notice">📄</button>` : '';
-                    let smsBtn = p.has_overlap ? `<button class="btn btn-sm btn-warning fw-bold p-1 mx-1 text-dark" onclick="prepareAlert('${p.parcel_id}', '${p.overlap_neighbors.join(", ")}')" title="Alert Neighbors">📡</button>` : '';
-                    tbody.innerHTML += `<tr><td><button class="btn btn-link fw-bold p-0" onclick="openDossier('${p.parcel_id}')">${p.parcel_id}</button></td><td>${p.area_difference||0}</td><td>${overTag}</td><td><span class="badge bg-secondary">${p.verification_status}</span></td><td><div class="d-flex flex-nowrap"><button class="btn btn-sm btn-outline-info p-1 mx-1" onclick="flyToParcel('${p.parcel_id}')">🗺️</button> <button class="btn btn-sm btn-outline-success p-1 mx-1" onclick="updateStatus('${p.parcel_id}', 'Approved')">✔</button> <button class="btn btn-sm btn-outline-danger p-1 mx-1" onclick="updateStatus('${p.parcel_id}', 'Rejected')">✖</button> ${nBtn} ${smsBtn}</div></td></tr>`;
-                }
-            });
-            document.getElementById('statTotal').innerText = parcels.length; document.getElementById('statSafe').innerText = sC; document.getElementById('statRisk').innerText = rC; document.getElementById('statPending').innerText = pC; updateCharts(sC, rC, pC, appC, rejC);
-        }
+    if(geometry){
+      const layer = L.geoJSON(geometry,{style:{color:"#0d6efd",fillOpacity:.2}}).addTo(map);
+      map.fitBounds(layer.getBounds());
+    }
 
-        async function loadParcelQueue() { loadSavedPolygons(); addLog("Queue manually refreshed."); }
-        function prepareAlert(sourceId, neighborsStr) { document.getElementById('notifyNeighborsList').innerText = neighborsStr; document.getElementById('smsDraft').innerText = `GOVT ALERT [SIH26010]:\nAttention owner of Gat No(s) ${neighborsStr}.\nA recent digital survey submitted for adjoining Parcel ${sourceId} crosses into your legal boundary coordinates.\n\nStatus: DISPUTED.\nPlease contact the Taluka Land Office within 72 hrs.`; new bootstrap.Modal(document.getElementById('notifyModal')).show(); }
-        function dispatchAlerts() { addLog("Dispatched automated SMS alerts to stakeholders."); alert("✅ SMS Dispatch Initiated."); }
-        
-        function generateNotice(pid) {
-            const p = globalParcelsDatabase.find(x => x.parcel_id === pid); if(!p) return;
-            document.getElementById('pdf-date').innerText = new Date().toLocaleDateString(); 
-            document.getElementById('pdf-ref').innerText = Math.floor(Math.random()*90000)+10000;
-            document.getElementById('pdf-parcel').innerText = p.parcel_id; 
-            document.getElementById('pdf-old').innerText = (p.old_area||0)+' m²'; 
-            document.getElementById('pdf-new').innerText = (p.new_area||0)+' m²'; 
-            document.getElementById('pdf-diff').innerText = (p.area_difference||0)+' m²'; 
-            document.getElementById('pdf-overlap').innerHTML = p.has_overlap ? '<strong class="text-danger">YES - Spatial Intersection</strong>' : 'No'; 
-            document.getElementById('pdf-hash').innerText = p.crypto_hash || "N/A";
-            
-            if(p.geom_json) {
-                const geo = JSON.parse(p.geom_json).coordinates[0];
-                document.getElementById('pdf-geom').innerText = geo.map(c => `[${c[1].toFixed(4)}, ${c[0].toFixed(4)}]`).join(" ➔ ");
-            } else { document.getElementById('pdf-geom').innerText = "Geometry missing."; }
+  }catch(error){
+    console.error(error);
+    showToast("Could not retrieve parcel data.", "danger");
+  }
+}
 
-            const elem = document.getElementById('pdfTemplate'); elem.classList.remove('d-none'); 
-            html2pdf().set({ margin: 1, filename: `Notice_${p.parcel_id}.pdf`, jsPDF: { format: 'letter', orientation: 'portrait' } }).from(elem).save().then(() => { 
-                elem.classList.add('d-none'); addLog(`Generated Crypto-Sealed PDF Notice for ${pid}`); 
-            });
-        }
+/* ---------------- EXPORT ---------------- */
 
-        function openDossier(pid) {
-            const p = globalParcelsDatabase.find(x => x.parcel_id === pid); if(!p) return;
-            document.getElementById('m-id').innerText = p.parcel_id; document.getElementById('m-status').innerHTML = `<span class="badge bg-secondary">${p.verification_status}</span>`; document.getElementById('m-risk').innerHTML = p.has_overlap ? '<span class="text-danger fw-bold">OVERLAP WARNING</span>' : p.ai_risk_type; document.getElementById('m-oldArea').innerText = p.old_area + ' m²'; document.getElementById('m-newArea').innerText = p.new_area + ' m²'; document.getElementById('m-diff').innerText = p.area_difference + ' m²'; document.getElementById('m-hash').innerText = p.crypto_hash || "N/A";
-            new bootstrap.Modal(document.getElementById('parcelModal')).show(); addLog(`Accessed official legal dossier for ${pid}`);
-        }
-        function flyToParcel(pid) { if (mapPolygons[pid]) { window.scrollTo({ top: 0, behavior: 'smooth' }); map.flyToBounds(mapPolygons[pid].getBounds(), { duration: 1.5, maxZoom: 20 }); setTimeout(() => mapPolygons[pid].openPopup(), 1500); } }
-        async function updateStatus(pid, st) { await fetch('/api/parcels/update-status', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ parcel_id: pid, verification_status: `${st} by ${currentGovId}` }) }); addLog(`Changed status of ${pid} to ${st}`); loadSavedPolygons(); }
-        function exportToCSV() { addLog("Exported Audit Queue to CSV."); alert("CSV Downloaded"); }
-        function processGeoJSON(event) { alert("Mock GeoJSON process triggered."); addLog("Imported file geometry via GeoJSON."); }
-    </script>
+function exportGeoJSON(){
+  const features = [];
+
+  globalParcelsDatabase.forEach(p => {
+    const geometry = getParcelGeometry(p);
+    if(!geometry) return;
+
+    features.push({
+      type:"Feature",
+      properties:{
+        parcel_id:p.parcel_id,
+        village_id:p.village_id,
+        old_area:p.old_area,
+        new_area:p.new_area,
+        verification_status:p.verification_status || p.status || "PENDING"
+      },
+      geometry:geometry.type === "Feature" ? geometry.geometry : geometry
+    });
+  });
+
+  const collection = {
+    type:"FeatureCollection",
+    features
+  };
+
+  downloadFile(
+    JSON.stringify(collection,null,2),
+    "landlens_parcels.geojson",
+    "application/geo+json"
+  );
+
+  addLog("GeoJSON export generated.");
+}
+
+function exportToCSV(){
+  const rows = [
+    ["Parcel ID","Village ID","Survey/Gat No","Old Area (m2)","New Area (m2)","Difference (m2)","Difference (%)","Quality","Spatial Overlap","Status"]
+  ];
+
+  globalParcelsDatabase.forEach(p => {
+    const oldArea = Number(p.old_area || 0);
+    const newArea = Number(p.new_area || p.calculated_area || 0);
+    const diff = newArea-oldArea;
+    const pct = oldArea ? diff/oldArea*100 : "";
+
+    rows.push([
+      p.parcel_id || "",
+      p.village_id || "",
+      p.gat_no || p.survey_no || "",
+      oldArea,
+      newArea,
+      diff,
+      pct === "" ? "" : pct.toFixed(2),
+      p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"),
+      p.has_overlap ? "YES" : "NO",
+      p.verification_status || p.status || "PENDING"
+    ]);
+  });
+
+  const csv = rows.map(row =>
+    row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")
+  ).join("\n");
+
+  downloadFile(csv,"landlens_parcels.csv","text/csv;charset=utf-8");
+  addLog("CSV export generated.");
+}
+
+function downloadFile(content,name,type){
+  const blob = new Blob([content],{type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url;
+  a.download=name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------- CHARTS ---------------- */
+
+function renderCharts(){
+  const approved = globalParcelsDatabase.filter(p =>
+    String(p.verification_status || p.status || "").toLowerCase().includes("approved")
+  ).length;
+
+  const rejected = globalParcelsDatabase.filter(p =>
+    String(p.verification_status || p.status || "").toLowerCase().includes("rejected")
+  ).length;
+
+  const resurvey = globalParcelsDatabase.filter(p =>
+    String(p.verification_status || p.status || "").toLowerCase().includes("resurvey")
+  ).length;
+
+  const pending = globalParcelsDatabase.length-approved-rejected-resurvey;
+
+  const review = globalParcelsDatabase.filter(p =>
+    p.has_overlap || String(p.quality_status || "").toUpperCase() !== "PASS"
+  ).length;
+
+  if(statusChartInst) statusChartInst.destroy();
+  if(riskChartInst) riskChartInst.destroy();
+
+  statusChartInst = new Chart(document.getElementById("statusChart"),{
+    type:"doughnut",
+    data:{
+      labels:["Pending","Approved","Rejected","Resurvey"],
+      datasets:[{data:[pending,approved,rejected,resurvey]}]
+    },
+    options:{responsive:true}
+  });
+
+  riskChartInst = new Chart(document.getElementById("riskChart"),{
+    type:"bar",
+    data:{
+      labels:["Review Required","No Current Flag"],
+      datasets:[{
+        label:"Parcels",
+        data:[review,Math.max(globalParcelsDatabase.length-review,0)]
+      }]
+    },
+    options:{responsive:true,scales:{y:{beginAtZero:true}}}
+  });
+}
+
+/* ---------------- PDF / REPORT ---------------- */
+
+async function generateParcelReport(parcelId){
+  const p = globalParcelsDatabase.find(x => String(x.parcel_id)===String(parcelId));
+  if(!p){
+    showToast("Parcel not found.", "warning");
+    return;
+  }
+
+  const oldArea = Number(p.old_area || 0);
+  const newArea = Number(p.new_area || p.calculated_area || 0);
+  const diff = newArea-oldArea;
+  const pct = oldArea ? diff/oldArea*100 : null;
+
+  const wrapper = document.createElement("div");
+  wrapper.style.padding="30px";
+  wrapper.style.fontFamily="Arial";
+  wrapper.innerHTML = `
+    <h2>LANDLENS — Parcel Survey Report</h2>
+    <p><strong>Prototype / System-Generated Report</strong></p>
+    <hr>
+    <h4>Parcel: ${escapeHtml(p.parcel_id)}</h4>
+    <p>Village ID: ${escapeHtml(p.village_id || "—")}</p>
+    <p>Survey/Gat No.: ${escapeHtml(p.gat_no || p.survey_no || "—")}</p>
+    <hr>
+    <h5>Historical Record</h5>
+    <p>Old Area: ${oldArea.toFixed(2)} m²</p>
+    <p>Method: ${escapeHtml(p.old_survey_method || "—")}</p>
+    <hr>
+    <h5>Modern Survey</h5>
+    <p>New Area: ${newArea.toFixed(2)} m²</p>
+    <p>Difference: ${diff.toFixed(2)} m²</p>
+    <p>Percentage Difference: ${pct !== null ? pct.toFixed(2)+"%" : "—"}</p>
+    <p>Method: ${escapeHtml(p.new_survey_method || p.instrument_type || "—")}</p>
+    <hr>
+    <h5>GIS Analysis</h5>
+    <p>Spatial overlap: ${p.has_overlap ? "Detected — verification required" : "Not detected in current dataset"}</p>
+    <p>Quality: ${escapeHtml(p.quality_status || "Review required")}</p>
+    <p>Status: ${escapeHtml(p.verification_status || p.status || "PENDING")}</p>
+    <hr>
+    <p style="font-size:11px">
+      This report is system-generated and does not itself constitute a legal order,
+      title determination, encroachment finding, or government-issued certificate.
+      Final decisions remain with the authorized government workflow.
+    </p>
+  `;
+
+  document.body.appendChild(wrapper);
+
+  await html2pdf().set({
+    margin:10,
+    filename:`LANDLENS_${parcelId}_report.pdf`,
+    image:{type:"jpeg",quality:.95},
+    html2canvas:{scale:2},
+    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
+  }).from(wrapper).save();
+
+  wrapper.remove();
+}
+
+/* ---------------- INIT ---------------- */
+
+async function initialLoad(){
+  const token = localStorage.getItem("landlens_access_token");
+  if(token){
+    accessToken = token;
+  }
+}
+
+initialLoad();
+</script>
+
 </body>
 </html>
