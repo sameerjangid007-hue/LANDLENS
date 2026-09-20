@@ -341,8 +341,7 @@ pre{
   </div>
 
 
-  <div class="row g-3">
-
+  <div class="row g-3 mb-3">
 
     <div class="col-lg-4">
 
@@ -383,10 +382,9 @@ pre{
 
     </div>
 
-
     <div class="col-lg-8">
 
-      <div class="card">
+      <div class="card h-100">
 
         <div class="card-header">
 
@@ -432,6 +430,63 @@ pre{
 
   </div>
 
+  <div class="row g-3">
+    
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <i class="bi bi-file-earmark-plus"></i> Submit Survey / Resurvey Request
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Parcel ID / Gat No. *</label>
+            <input id="requestParcelId" class="form-control" placeholder="e.g. PIM-001">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Reason for Request</label>
+            <select id="requestReason" class="form-select">
+              <option>Boundary Dispute</option>
+              <option>Subdivision / Partition</option>
+              <option>Ownership Transfer</option>
+              <option>Map Correction</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Upload Permitted Documents / Photos</label>
+            <input id="requestFile" type="file" class="form-control" accept="image/*,.pdf">
+          </div>
+          <button class="btn btn-success w-100" onclick="submitFarmerRequest()">Submit Request</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <i class="bi bi-list-check"></i> Track Request Status
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover" id="farmerRequestsTable">
+              <thead>
+                <tr>
+                  <th>Parcel</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Updates</th>
+                </tr>
+              </thead>
+              <tbody id="farmerRequestsBody">
+                <tr><td colspan="4" class="text-center text-muted small">No active requests.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </section>
 
 
@@ -470,6 +525,30 @@ pre{
 
     <div class="col-lg-5">
 
+      <!-- ASSIGNED CASES -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-list-task"></i> Assigned Survey Cases</span>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadSurveyorQueue()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+            <table class="table table-hover table-sm" id="surveyorQueueTable">
+              <thead>
+                <tr>
+                  <th>Parcel ID</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4" class="text-center text-muted small">No pending cases assigned.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       <!-- EXISTING RECORD -->
 
@@ -738,7 +817,7 @@ pre{
             <div class="col-md-6">
 
               <label class="form-label">
-                New Survey Area (optional)
+                New Surveyor Area (optional)
               </label>
 
               <input id="manualNewArea"
@@ -1931,6 +2010,10 @@ function showWorkspaceForRole(
     loadAdminDatabase();
 
   }
+  
+  if(role === "SURVEYOR"){
+    loadSurveyorQueue();
+  }
 
 }
 
@@ -2006,7 +2089,6 @@ function initializeMap(){
       16
     );
 
-
   const googleSat =
     L.tileLayer(
       "https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
@@ -2017,14 +2099,6 @@ function initializeMap(){
       }
     )
     .addTo(map);
-
-
-  L.control.layers({
-    "Google Satellite":
-      googleSat
-  })
-  .addTo(map);
-
 
   map.on(
     "click",
@@ -2040,9 +2114,13 @@ function initializeMap(){
 
 function handleMapClick(e){
 
-  if(!isDrawing)
+  if(!isDrawing) {
+    L.popup()
+      .setLatLng(e.latlng)
+      .setContent(`<strong>Coordinates:</strong><br>Lat: ${e.latlng.lat.toFixed(6)}<br>Lng: ${e.latlng.lng.toFixed(6)}`)
+      .openOn(map);
     return;
-
+  }
 
   drawnPoints.push([
     e.latlng.lat,
@@ -2058,12 +2136,12 @@ function handleMapClick(e){
 
   }
 
-
   tempPolyline =
     L.polyline(
       drawnPoints,
       {
-        dashArray:"6,6"
+        dashArray:"6,6",
+        color:"#FFD700" 
       }
     )
     .addTo(map);
@@ -2101,7 +2179,7 @@ function handleMapClick(e){
         drawnPoints,
         {
           color:"#0d6efd",
-          fillOpacity:.15
+          fillOpacity:.3
         }
       )
       .addTo(map);
@@ -2455,7 +2533,7 @@ async function processGeoJSON(
           style:{
             color:"#198754",
             weight:3,
-            fillOpacity:.15
+            fillOpacity:.3
           }
         }
       )
@@ -3924,6 +4002,71 @@ function renderOfficerQueue(){
 
 
 /* ============================================================
+   SURVEYOR QUEUE
+============================================================ */
+
+async function loadSurveyorQueue(){
+
+  try{
+
+    const data =
+      await apiRequest(
+        "/api/parcels/list"
+      );
+
+
+    globalParcelsDatabase =
+      Array.isArray(data)
+        ? data
+        : (
+            data.parcels ||
+            data.items ||
+            []
+          );
+
+
+    const tbody = document.querySelector("#surveyorQueueTable tbody");
+    if(!tbody) return;
+
+    let pendingCases = globalParcelsDatabase.filter(p => {
+      const status = String(p.verification_status || p.status || "").toLowerCase();
+      return status.includes("pending") || status.includes("resurvey");
+    });
+
+    if(pendingCases.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted small">No pending cases assigned.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = pendingCases.map(p => {
+      const status = p.verification_status || p.status || "PENDING";
+      return `
+        <tr>
+          <td><strong>${escapeHtml(p.parcel_id)}</strong></td>
+          <td>Field Check</td>
+          <td>${statusBadge(status)}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary py-0" onclick="document.getElementById('parcelId').value='${escapeAttr(p.parcel_id)}'; showToast('Loaded ${escapeAttr(p.parcel_id)} into form.', 'info');">Load</button>
+          </td>
+        </tr>`;
+    }).join("");
+
+    showToast("Surveyor queue refreshed.", "success");
+
+  }catch(error){
+
+    showToast(
+      "Could not load surveyor queue: " +
+      error.message,
+      "danger"
+    );
+
+  }
+
+}
+
+
+/* ============================================================
    BADGES
 ============================================================ */
 
@@ -4188,6 +4331,9 @@ function openDossier(
       : null;
 
 
+  const isDiscrepancy = pct !== null && Math.abs(pct) > 5;
+
+
   document.getElementById(
     "dossierContent"
   ).innerHTML = `
@@ -4257,265 +4403,72 @@ function openDossier(
 
 
     <div class="dossier-section">
-
-      <h6>
-        Historical Record
-      </h6>
-
-
-      <div class="row g-2">
-
-        <div class="col-md-3">
-
-          Old Area
-
-          <br>
-
-          <strong>
-            ${formatNumber(
-              oldArea
-            )} m²
-          </strong>
-
-        </div>
-
-
-        <div class="col-md-3">
-
-          Method
-
-          <br>
-
-          <strong>
-            ${escapeHtml(
-              p.old_survey_method ||
-              "—"
-            )}
-          </strong>
-
-        </div>
-
-
-        <div class="col-md-3">
-
-          Year
-
-          <br>
-
-          <strong>
-            ${escapeHtml(
-              p.old_survey_year ||
-              "—"
-            )}
-          </strong>
-
-        </div>
-
-
-        <div class="col-md-3">
-
-          RoR Ref.
-
-          <br>
-
-          <strong>
-            ${escapeHtml(
-              p.reference_ror ||
-              "—"
-            )}
-          </strong>
-
-        </div>
-
+      <h6><i class="bi bi-bar-chart-half"></i> Old Data vs New Data Comparison</h6>
+      <div class="table-responsive mt-3">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Parameter</th>
+              <th>Old Data (Historical)</th>
+              <th>New Data (Modern Survey)</th>
+              <th>Variation / Discrepancy</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Area</strong></td>
+              <td>${formatNumber(oldArea)} m²</td>
+              <td>${formatNumber(newArea)} m²</td>
+              <td class="${isDiscrepancy ? 'text-danger fw-bold' : 'text-success fw-bold'}">
+                ${formatNumber(diff)} m² <br>
+                <small>(${pct !== null ? formatNumber(pct) + '%' : '—'})</small>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Survey Method</strong></td>
+              <td>${escapeHtml(p.old_survey_method || "—")} <br><small class="text-muted">Year: ${escapeHtml(p.old_survey_year || "—")}</small></td>
+              <td>${escapeHtml(p.new_survey_method || p.instrument_type || "—")}</td>
+              <td><span class="badge bg-info text-dark">Method Upgraded</span></td>
+            </tr>
+            <tr>
+              <td><strong>Dimensions</strong></td>
+              <td>Manual (Chain/Tape)</td>
+              <td>Calculated from Geometry</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><strong>Boundary Format</strong></td>
+              <td>Textual / Paper Map</td>
+              <td>Precise Geo-coordinates (Polygon)</td>
+              <td><span class="badge bg-info text-dark">Digitized</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
-    </div>
-
-
-    <div class="dossier-section">
-
-      <h6>
-        Modern Survey
-      </h6>
-
-
-      <div class="row g-2">
-
-        <div class="col-md-4">
-
-          New Area
-
-          <br>
-
-          <strong>
-            ${formatNumber(
-              newArea
-            )} m²
-          </strong>
-
-        </div>
-
-
-        <div class="col-md-4">
-
-          Difference
-
-          <br>
-
-          <strong>
-            ${formatNumber(
-              diff
-            )} m²
-          </strong>
-
-        </div>
-
-
-        <div class="col-md-4">
-
-          Percentage
-
-          <br>
-
-          <strong>
-            ${
-              pct !== null
-                ? formatNumber(
-                    pct
-                  ) + "%"
-                : "—"
-            }
-          </strong>
-
-        </div>
-
-
-        <div class="col-md-6">
-
-          Method
-
-          <br>
-
-          <strong>
-            ${escapeHtml(
-              p.new_survey_method ||
-              p.instrument_type ||
-              "—"
-            )}
-          </strong>
-
-        </div>
-
-
-        <div class="col-md-6">
-
-          Accuracy
-
-          <br>
-
-          <strong>
-            ${
-              p.accuracy_m
-                ? escapeHtml(
-                    p.accuracy_m
-                  ) + " m"
-                : "—"
-            }
-          </strong>
-
-        </div>
-
+      <div class="mt-2 p-2 rounded ${isDiscrepancy ? 'bg-danger text-white' : 'bg-success text-white'}">
+        <strong>Discrepancy Status:</strong> 
+        ${isDiscrepancy ? '<i class="bi bi-exclamation-triangle"></i> Significant Area Variation Detected (>5%)' : '<i class="bi bi-check-circle"></i> Area Variation within acceptable limits (<=5%)'}
       </div>
-
     </div>
 
 
     <div class="dossier-section">
-
-      <h6>
-        GIS / Quality
-      </h6>
-
-
-      <p>
-
-        Spatial overlap:
-
-        ${
-          p.has_overlap
-
-            ? `
-              <strong class="text-warning">
-                Detected — requires field/legal verification
-              </strong>
-            `
-
-            : `
-              <strong class="text-success">
-                No overlap detected in current dataset
-              </strong>
-            `
-        }
-
+      <h6><i class="bi bi-globe"></i> GIS / Quality Checks</h6>
+      <p>Spatial overlap:
+        ${p.has_overlap
+            ? '<strong class="text-warning">Detected — requires field/legal verification</strong>'
+            : '<strong class="text-success">No overlap detected in current dataset</strong>'}
       </p>
-
-
-      <p>
-
-        Quality status:
-
-        ${
-          qualityBadge(
-            p.quality_status ||
-            (
-              p.has_overlap
-                ? "REVIEW REQUIRED"
-                : "PASS"
-            )
-          )
-        }
-
-      </p>
-
+      <p>Quality status: ${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</p>
     </div>
-
 
     <div class="dossier-section">
-
-      <h6>
-        Workflow Status
-      </h6>
-
-      ${
-        statusBadge(
-          p.verification_status ||
-          p.status ||
-          "PENDING"
-        )
-      }
-
+      <h6><i class="bi bi-journal-text"></i> Audit / Source Notes</h6>
+      <pre class="bg-light p-3 rounded mb-2">${escapeHtml(p.audit_notes || p.remark || "No notes available.")}</pre>
+      <strong>Current Workflow Status:</strong> ${statusBadge(p.verification_status || p.status || "PENDING")}
     </div>
 
-
-    <div class="dossier-section">
-
-      <h6>
-        Audit / Source Notes
-      </h6>
-
-
-      <pre class="bg-light p-3 rounded">
-${escapeHtml(
-  p.audit_notes ||
-  p.remark ||
-  "No notes available."
-)}
-      </pre>
-
-    </div>
-
-
-    <div class="d-flex gap-2 flex-wrap">
+    <div class="d-flex gap-2 flex-wrap mt-3">
 
 
       ${
@@ -4533,7 +4486,7 @@ ${escapeHtml(
                 );
                 closeDossier();
               ">
-
+              <i class="bi bi-check2"></i> 
               Approve
 
             </button>
@@ -4548,7 +4501,7 @@ ${escapeHtml(
                 );
                 closeDossier();
               ">
-
+              <i class="bi bi-arrow-counterclockwise"></i> 
               Request Resurvey
 
             </button>
@@ -4563,7 +4516,7 @@ ${escapeHtml(
                 );
                 closeDossier();
               ">
-
+              <i class="bi bi-x-circle"></i> 
               Reject
 
             </button>
@@ -4582,7 +4535,7 @@ ${escapeHtml(
             '${escapeAttr(p.parcel_id)}'
           )
         ">
-
+        <i class="bi bi-map"></i> 
         Show on Map
 
       </button>
@@ -4647,6 +4600,37 @@ function zoomToParcel(
 /* ============================================================
    FARMER
 ============================================================ */
+
+function submitFarmerRequest(){
+  const parcelId = document.getElementById("requestParcelId").value.trim();
+  const reason = document.getElementById("requestReason").value;
+  
+  if(!parcelId){
+    showToast("Please enter a Parcel ID or Gat No.", "warning");
+    return;
+  }
+  
+  showToast("Survey request submitted successfully.", "success");
+  addLog(`Citizen submitted resurvey request for ${parcelId}`);
+  
+  const tbody = document.getElementById("farmerRequestsBody");
+  if(tbody.innerHTML.includes("No active requests")){
+    tbody.innerHTML = "";
+  }
+  
+  tbody.innerHTML += `
+    <tr>
+      <td><strong>${escapeHtml(parcelId)}</strong></td>
+      <td>${escapeHtml(reason)}</td>
+      <td><span class="status-pill status-pending">PENDING</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline-info py-0" onclick="showMessage('Request received. Pending surveyor assignment.', 'info')">View</button>
+      </td>
+    </tr>
+  `;
+  
+  document.getElementById("requestParcelId").value = "";
+}
 
 async function searchFarmerParcel(){
 
@@ -4734,6 +4718,7 @@ async function searchFarmerParcel(){
         p
       );
 
+    const isApproved = String(p.verification_status || p.status || "").toLowerCase().includes("approved");
 
     document.getElementById(
       "farmerResult"
@@ -4813,6 +4798,8 @@ async function searchFarmerParcel(){
             Citizen view only.
 
           </p>
+          
+          ${isApproved ? `<button class="btn btn-sm btn-success mt-2" onclick="showMessage('Downloading approved survey certificate...', 'success')"><i class="bi bi-download"></i> Download Approved Result</button>` : ""}
 
 
         </div>
@@ -4860,6 +4847,26 @@ async function searchFarmerParcel(){
 
 }
 
+function sendMockOtp(){
+  const mobile = document.getElementById("farmerMobile").value.trim();
+  if(!/^\d{10}$/.test(mobile)){
+    showToast("Enter a valid 10-digit mobile number.", "warning");
+    return;
+  }
+  document.getElementById("farmerVerificationStatus").innerHTML =
+    '<span class="text-primary">Prototype OTP sent. Demo OTP: 1234</span>';
+}
+
+function verifyMockOtp(){
+  const otp = document.getElementById("farmerOtp").value.trim();
+  const el = document.getElementById("farmerVerificationStatus");
+
+  if(otp === "1234"){
+    el.innerHTML = '<span class="text-success fw-bold">Prototype verification successful.</span>';
+  }else{
+    el.innerHTML = '<span class="text-danger">Invalid prototype OTP.</span>';
+  }
+}
 
 /* ============================================================
    EXPORT GEOJSON
