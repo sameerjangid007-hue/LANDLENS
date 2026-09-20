@@ -2006,7 +2006,7 @@ function initializeMap(){
       16
     );
 
-  // Update 1: Replace OpenStreetMap with Google Satellite (Hybrid with labels)
+
   const googleSat =
     L.tileLayer(
       "https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
@@ -2017,6 +2017,14 @@ function initializeMap(){
       }
     )
     .addTo(map);
+
+
+  L.control.layers({
+    "Google Satellite":
+      googleSat
+  })
+  .addTo(map);
+
 
   map.on(
     "click",
@@ -2032,14 +2040,9 @@ function initializeMap(){
 
 function handleMapClick(e){
 
-  // Update 2: Show Latitude and Longitude on map click
-  if(!isDrawing) {
-    L.popup()
-      .setLatLng(e.latlng)
-      .setContent(`<strong>Coordinates:</strong><br>Lat: ${e.latlng.lat.toFixed(6)}<br>Lng: ${e.latlng.lng.toFixed(6)}`)
-      .openOn(map);
+  if(!isDrawing)
     return;
-  }
+
 
   drawnPoints.push([
     e.latlng.lat,
@@ -2055,13 +2058,12 @@ function handleMapClick(e){
 
   }
 
-  // Update 3: Make boundary drawing more visible against satellite imagery
+
   tempPolyline =
     L.polyline(
       drawnPoints,
       {
-        dashArray:"6,6",
-        color:"#FFD700" 
+        dashArray:"6,6"
       }
     )
     .addTo(map);
@@ -2099,7 +2101,7 @@ function handleMapClick(e){
         drawnPoints,
         {
           color:"#0d6efd",
-          fillOpacity:.3
+          fillOpacity:.15
         }
       )
       .addTo(map);
@@ -2453,7 +2455,7 @@ async function processGeoJSON(
           style:{
             color:"#198754",
             weight:3,
-            fillOpacity:.3
+            fillOpacity:.15
           }
         }
       )
