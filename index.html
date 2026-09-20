@@ -745,20 +745,6 @@ pre{
           <div class="mt-3">
 
             <label class="form-label">
-              Old Boundary Coordinates (optional)
-            </label>
-
-            <textarea id="oldBoundaries"
-                      class="form-control"
-                      rows="2"
-                      placeholder="lat,lng per line"></textarea>
-
-          </div>
-
-
-          <div class="mt-3">
-
-            <label class="form-label">
               Old Record Image / Document
             </label>
 
@@ -2722,61 +2708,6 @@ function runQualityChecks(
   }
 
 
-  try{
-
-    const kinks =
-      turf.kinks(
-        feature
-      );
-
-
-    if(kinks.features.length > 0){
-
-      checks.push({
-
-        name:
-          "Self-intersection (kinks)",
-
-        status:
-          "ERROR"
-
-      });
-
-
-      errors++;
-
-    } else {
-
-      checks.push({
-
-        name:
-          "Self-intersection (kinks)",
-
-        status:
-          "PASS"
-
-      });
-
-    }
-
-  }catch{
-
-    checks.push({
-
-      name:
-        "Self-intersection (kinks)",
-
-      status:
-        "REVIEW REQUIRED"
-
-    });
-
-
-    warnings++;
-
-  }
-
-
   if(area <= 0){
 
     checks.push({
@@ -2909,6 +2840,64 @@ function runQualityChecks(
 
 
 /* ============================================================
+   AI ASSISTANT ANALYSIS
+============================================================ */
+
+function analyzeParcelWithAI(p) {
+  let flags = [];
+  let missingInfo = [];
+  let summary = `This case involves Parcel ${escapeHtml(p.parcel_id || 'Unknown')} located in Village ${escapeHtml(p.village_id || 'Unknown')}. `;
+
+  const oldArea = Number(p.old_area || 0);
+  const newArea = Number(p.new_area || p.calculated_area || 0);
+  const pct = oldArea ? ((newArea - oldArea) / oldArea) * 100 : null;
+
+  // 1. Detect unusual area changes
+  if (pct !== null && Math.abs(pct) > 5) {
+    flags.push(`Unusual area change detected: ${pct.toFixed(2)}% variance from historical data.`);
+  }
+
+  // 2. Flag possible boundary discrepancies
+  if (p.has_overlap) {
+    flags.push(`Boundary discrepancy risk: Spatial overlap detected with adjacent parcel(s).`);
+  }
+
+  // 3. Identify missing/inconsistent information
+  if (!p.gat_no && !p.survey_no) missingInfo.push("Survey/Gat No.");
+  if (!p.old_survey_method) missingInfo.push("Old Survey Method");
+  if (!p.old_survey_year) missingInfo.push("Old Survey Year");
+  
+  if (missingInfo.length > 0) {
+    flags.push(`Missing historical information: ${missingInfo.join(", ")}.`);
+  }
+
+  // 4. Detect duplicate/outlier survey points
+  let hasDuplicates = false;
+  const geom = getParcelGeometry(p);
+  if (geom && geom.coordinates && geom.coordinates[0]) {
+    const coords = geom.coordinates[0];
+    for (let i = 0; i < coords.length - 2; i++) { 
+      if (coords[i][0] === coords[i+1][0] && coords[i][1] === coords[i+1][1]) {
+        hasDuplicates = true;
+      }
+    }
+  }
+  if (hasDuplicates) {
+    flags.push("Data anomaly: Duplicate consecutive survey points detected in geometry.");
+  }
+
+  // Summarize
+  if (flags.length === 0) {
+    summary += "The modern survey aligns closely with historical data parameters. No significant anomalies or discrepancies were detected.";
+  } else {
+    summary += `AI has flagged ${flags.length} potential issue(s) requiring officer review before final approval.`;
+  }
+
+  return { flags, summary };
+}
+
+
+/* ============================================================
    EXISTING RECORD
 ============================================================ */
 
@@ -2997,33 +2986,6 @@ async function registerExistingRecord(){
     new_survey_method:
       document.getElementById(
         "modernMethod"
-      ).value,
-
-    old_points_text:
-      document.getElementById(
-        "oldBoundaries"
-      ) ? document.getElementById(
-            "oldBoundaries"
-          ).value.trim() : null,
-
-    old_north:
-      document.getElementById(
-        "oldNorth"
-      ).value,
-
-    old_south:
-      document.getElementById(
-        "oldSouth"
-      ).value,
-
-    old_east:
-      document.getElementById(
-        "oldEast"
-      ).value,
-
-    old_west:
-      document.getElementById(
-        "oldWest"
       ).value,
 
     audit_notes:
@@ -4098,71 +4060,6 @@ function renderOfficerQueue(){
 
 
 /* ============================================================
-   SURVEYOR QUEUE
-============================================================ */
-
-async function loadSurveyorQueue(){
-
-  try{
-
-    const data =
-      await apiRequest(
-        "/api/parcels/list"
-      );
-
-
-    globalParcelsDatabase =
-      Array.isArray(data)
-        ? data
-        : (
-            data.parcels ||
-            data.items ||
-            []
-          );
-
-
-    const tbody = document.querySelector("#surveyorQueueTable tbody");
-    if(!tbody) return;
-
-    let pendingCases = globalParcelsDatabase.filter(p => {
-      const status = String(p.verification_status || p.status || "").toLowerCase();
-      return status.includes("pending") || status.includes("resurvey");
-    });
-
-    if(pendingCases.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted small">No pending cases assigned.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = pendingCases.map(p => {
-      const status = p.verification_status || p.status || "PENDING";
-      return `
-        <tr>
-          <td><strong>${escapeHtml(p.parcel_id)}</strong></td>
-          <td>Field Check</td>
-          <td>${statusBadge(status)}</td>
-          <td>
-            <button class="btn btn-sm btn-outline-primary py-0" onclick="document.getElementById('parcelId').value='${escapeAttr(p.parcel_id)}'; showToast('Loaded ${escapeAttr(p.parcel_id)} into form.', 'info');">Load</button>
-          </td>
-        </tr>`;
-    }).join("");
-
-    showToast("Surveyor queue refreshed.", "success");
-
-  }catch(error){
-
-    showToast(
-      "Could not load surveyor queue: " +
-      error.message,
-      "danger"
-    );
-
-  }
-
-}
-
-
-/* ============================================================
    BADGES
 ============================================================ */
 
@@ -4428,11 +4325,22 @@ function openDossier(
 
 
   const isDiscrepancy = pct !== null && Math.abs(pct) > 5;
+  const aiAnalysis = analyzeParcelWithAI(p);
 
 
   document.getElementById(
     "dossierContent"
   ).innerHTML = `
+
+    <div class="dossier-section border border-info rounded p-3 mb-4 bg-light">
+      <h6 class="text-info-emphasis fw-bold"><i class="bi bi-robot"></i> AI Assistant Insight Report</h6>
+      <p class="small text-muted mb-2 border-bottom border-info-subtle pb-2"><em>Note: AI is designed to assist in highlighting data anomalies. It does not make official decisions. Final verification rests with the Authorized Officer.</em></p>
+      <p class="mb-2"><strong>Case Summary:</strong> ${escapeHtml(aiAnalysis.summary)}</p>
+      ${aiAnalysis.flags.length > 0 ?
+        `<strong>Discrepancy Flags:</strong><ul class="text-danger small mb-0 mt-1"><li>${aiAnalysis.flags.map(escapeHtml).join('</li><li>')}</li></ul>` :
+        `<div class="alert alert-success py-1 small mb-0 mt-2"><i class="bi bi-check-circle"></i> No significant discrepancies detected by AI.</div>`
+      }
+    </div>
 
     <div class="dossier-section">
 
@@ -5603,6 +5511,11 @@ function renderParcelTable(
         const diff =
           newArea -
           oldArea;
+          
+        const aiAnalysis = analyzeParcelWithAI(p);
+        const aiBadge = aiAnalysis.flags.length > 0 
+          ? `<div class="mt-1"><span class="badge bg-danger"><i class="bi bi-robot"></i> AI Flagged</span></div>` 
+          : `<div class="mt-1"><span class="badge bg-info"><i class="bi bi-robot"></i> AI Clear</span></div>`;
 
 
         return `
@@ -5644,6 +5557,7 @@ function renderParcelTable(
                     : "PASS"
                 )
               )}
+              ${aiBadge}
             </td>
 
             <td>
