@@ -3754,7 +3754,9 @@ async function loadSavedPolygons(silent = false){
             data.items ||
             []
           );
-
+// Inside loadSavedPolygons(), right after assigning globalParcelsDatabase:
+let deletedList = JSON.parse(localStorage.getItem("landlens_deleted") || "[]");
+globalParcelsDatabase = globalParcelsDatabase.filter(p => !deletedList.includes(p.parcel_id));
 
     clearSavedPolygons();
 
