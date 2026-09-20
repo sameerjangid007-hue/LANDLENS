@@ -3551,7 +3551,7 @@ async function submitModernSurvey(){
 
 
     showToast(
-      "Connection failed. Survey placed in offline queue.",
+      "Connection failed. Record placed in offline queue.",
       "warning"
     );
 
@@ -5548,7 +5548,7 @@ async function loadAdminDatabase(silent = false){
 
 
 /* ============================================================
-   PARCEL TABLE
+   PARCEL TABLE (WITH EDIT & DELETE OPTIONS)
 ============================================================ */
 
 function renderParcelTable(
@@ -5635,21 +5635,41 @@ function renderParcelTable(
               </td>
 
               <td>
-
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  onclick="
-                    viewParcel(
-                      '${escapeAttr(
-                        p.parcel_id
-                      )}'
-                    )
-                  ">
-
-                  View
-
-                </button>
-
+                <div class="btn-group btn-group-sm">
+                  <button
+                    class="btn btn-outline-primary"
+                    onclick="
+                      viewParcel(
+                        '${escapeAttr(
+                          p.parcel_id
+                        )}'
+                      )
+                    ">
+                    View
+                  </button>
+                  <button
+                    class="btn btn-outline-warning"
+                    onclick="
+                      editParcel(
+                        '${escapeAttr(
+                          p.parcel_id
+                        )}'
+                      )
+                    ">
+                    Edit
+                  </button>
+                  <button
+                    class="btn btn-outline-danger"
+                    onclick="
+                      deleteParcel(
+                        '${escapeAttr(
+                          p.parcel_id
+                        )}'
+                      )
+                    ">
+                    Delete
+                  </button>
+                </div>
               </td>
 
             </tr>
@@ -5783,6 +5803,56 @@ function renderParcelTable(
     )
     .join("");
 
+}
+
+
+/* ============================================================
+   EDIT & DELETE PARCEL MANAGEMENT
+============================================================ */
+
+function editParcel(parcelId) {
+  const p = globalParcelsDatabase.find(x => String(x.parcel_id) === String(parcelId));
+  if (!p) {
+    showToast("Parcel record not found for editing.", "warning");
+    return;
+  }
+
+  // Switch to Surveyor workspace to make corrections
+  currentUserRole = "SURVEYOR";
+  showWorkspaceForRole("SURVEYOR");
+  updateHeader();
+
+  // Populate form fields for correction
+  document.getElementById("parcelId").value = p.parcel_id || "";
+  document.getElementById("villageId").value = p.village_id || "";
+  document.getElementById("ownerName").value = p.owner_name || "";
+  document.getElementById("gatNo").value = p.gat_no || p.survey_no || "";
+  document.getElementById("ctsNo").value = p.cts_no || "";
+  document.getElementById("oldArea").value = p.old_area || "";
+  document.getElementById("oldYear").value = p.old_survey_year || "";
+  
+  showToast(`Loaded Parcel ${parcelId} into Surveyor form for correction. Modify and re-save as needed.`, "info");
+  addLog(`Admin initiated edit for parcel record: ${parcelId}`);
+}
+
+async function deleteParcel(parcelId) {
+  if (!confirm(`Are you sure you want to delete incorrect parcel record ${parcelId}?`)) return;
+
+  try {
+    // Remove locally from state database
+    globalParcelsDatabase = globalParcelsDatabase.filter(x => String(x.parcel_id) !== String(parcelId));
+    clearSavedPolygons();
+    detectOverlaps();
+    
+    if (currentUserRole === "ADMIN") {
+      loadAdminDatabase(true);
+    }
+
+    showToast(`Parcel record ${parcelId} deleted successfully.`, "success");
+    addLog(`Parcel record deleted: ${parcelId} by Admin.`);
+  } catch (err) {
+    showToast("Could not delete parcel: " + err.message, "danger");
+  }
 }
 
 
