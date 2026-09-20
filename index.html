@@ -1590,7 +1590,7 @@ pre{
 
 
 <!-- =========================================================
-     DOCUMENT & IMAGE PREVIEW MODAL (NEW)
+     DOCUMENT & IMAGE PREVIEW MODAL
 ========================================================= -->
 
 <div class="modal fade" id="previewModal" tabindex="-1">
@@ -4234,7 +4234,7 @@ async function loadSurveyorQueue(silent = false){
           <td>Field Check</td>
           <td>${statusBadge(status)}</td>
           <td>
-            <button class="btn btn-sm btn-outline-primary py-0" onclick="document.getElementById('parcelId').value='${escapeAttr(p.parcel_id)}'; showToast('Loaded ${escapeAttr(p.parcel_id)} into form.', 'info');">Load</button>
+            <button class="btn btn-sm btn-outline-primary py-0" onclick="loadCaseIntoSurveyorForm('${escapeAttr(p.parcel_id)}')">Load</button>
           </td>
         </tr>`;
     }).join("");
@@ -4251,6 +4251,25 @@ async function loadSurveyorQueue(silent = false){
 
   }
 
+}
+
+function loadCaseIntoSurveyorForm(parcelId) {
+  const p = globalParcelsDatabase.find(x => String(x.parcel_id) === String(parcelId));
+  if (!p) {
+    showToast("Parcel data not found.", "warning");
+    return;
+  }
+  document.getElementById('parcelId').value = p.parcel_id || '';
+  document.getElementById('villageId').value = p.village_id || '';
+  document.getElementById('ownerName').value = p.owner_name || '';
+  document.getElementById('gatNo').value = p.gat_no || p.survey_no || '';
+  document.getElementById('ctsNo').value = p.cts_no || '';
+  document.getElementById('oldArea').value = p.old_area || '';
+  document.getElementById('oldYear').value = p.old_survey_year || '';
+  if(p.old_survey_method) document.getElementById('oldMethod').value = p.old_survey_method;
+  
+  showToast(`Loaded case ${parcelId} into Surveyor form.`, 'info');
+  addLog(`Surveyor loaded assigned case into form: ${parcelId}`);
 }
 
 
@@ -4459,7 +4478,7 @@ async function updateStatus(
 
 
 /* ============================================================
-   DOSSIER & PREVIEW FUNCTIONS (UPDATED)
+   DOSSIER
 ============================================================ */
 
 function selectParcelForReview(
@@ -4470,43 +4489,6 @@ function selectParcelForReview(
     parcelId
   );
 
-}
-
-
-function viewOldRecord(parcelId) {
-  const body = document.getElementById("previewModalBody");
-  document.getElementById("previewModalTitle").innerHTML = `<i class="bi bi-file-earmark-pdf"></i> Historical Record Map / RoR - Parcel ${parcelId}`;
-  body.innerHTML = `
-    <div class="alert alert-secondary">Scanned Historical Cadastral Map & Record of Rights (RoR)</div>
-    <div class="border p-3 bg-light rounded text-start">
-      <p><strong>Parcel ID:</strong> ${parcelId}</p>
-      <p><strong>Record Type:</strong> Historical Hand-drawn Cadastral Sheet / RoR Reference</p>
-      <p><strong>Archive Status:</strong> Digitally Verified & Archived from Revenue Department Records.</p>
-      <div class="text-center p-4 border bg-white rounded">
-        <i class="bi bi-file-earmark-richtext display-1 text-secondary"></i>
-        <p class="text-muted mt-2">[Mock Scanned Document Preview: Village Land Register Sheet #142]</p>
-      </div>
-    </div>
-  `;
-  bootstrap.Modal.getOrCreateInstance(document.getElementById("previewModal")).show();
-}
-
-function viewDroneImage(parcelId) {
-  const body = document.getElementById("previewModalBody");
-  document.getElementById("previewModalTitle").innerHTML = `<i class="bi bi-camera"></i> Drone Orthophoto & Survey Image - Parcel ${parcelId}`;
-  body.innerHTML = `
-    <div class="alert alert-success">High-Resolution Orthomosaic & RTK Field Capture</div>
-    <div class="border p-3 bg-light rounded text-start">
-      <p><strong>Parcel ID:</strong> ${parcelId}</p>
-      <p><strong>Instrument:</strong> RTK GNSS Rover / Autonomous Drone Orthophoto</p>
-      <p><strong>Capture Date:</strong> ${new Date().toLocaleDateString()}</p>
-      <div class="text-center p-4 border bg-dark text-white rounded">
-        <i class="bi bi-map-fill display-1 text-info"></i>
-        <p class="text-light mt-2">[Orthomosaic Aerial Imagery Tile Loaded Successfully - 2cm/pixel resolution]</p>
-      </div>
-    </div>
-  `;
-  bootstrap.Modal.getOrCreateInstance(document.getElementById("previewModal")).show();
 }
 
 
