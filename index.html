@@ -1348,19 +1348,19 @@ pre{
   <div class="row g-3">
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
-      <div class="card">
+      <div class="card h-100">
 
         <div class="card-body">
 
-          <h5>
-            Users & Roles
-          </h5>
+          <h6><i class="bi bi-geo-alt"></i> Villages / Projects</h6>
 
-          <p class="text-muted">
-            Manage users, roles and permissions.
+          <p class="text-muted small mb-0">
+            Manage active survey villages and project regions.
           </p>
+          
+          <button class="btn btn-sm btn-outline-primary w-100 mt-2" onclick="showToast('Village management module opening...', 'info')">Manage</button>
 
         </div>
 
@@ -1369,20 +1369,19 @@ pre{
     </div>
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
-      <div class="card">
+      <div class="card h-100">
 
         <div class="card-body">
 
-          <h5>
-            System Integrations
-          </h5>
+          <h6><i class="bi bi-gear"></i> System Config</h6>
 
-          <p class="text-muted">
-            Configure approved GIS and government
-            system integrations.
+          <p class="text-muted small mb-0">
+            Manage system configuration and GIS integrations.
           </p>
+          
+          <button class="btn btn-sm btn-outline-primary w-100 mt-2" onclick="showToast('Configuration module opening...', 'info')">Configure</button>
 
         </div>
 
@@ -1391,19 +1390,39 @@ pre{
     </div>
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
-      <div class="card">
+      <div class="card h-100">
 
         <div class="card-body">
 
-          <h5>
-            Audit & Backup
-          </h5>
+          <h6><i class="bi bi-people"></i> Users & Roles</h6>
 
-          <p class="text-muted">
-            Retention and recovery policies.
+          <p class="text-muted small mb-0">
+            Manage users/roles (when auth is introduced later).
           </p>
+          
+          <button class="btn btn-sm btn-outline-primary w-100 mt-2" onclick="showToast('User management locked. Awaiting Auth module.', 'warning')">Users</button>
+
+        </div>
+
+      </div>
+
+    </div>
+    
+    <div class="col-md-3">
+
+      <div class="card h-100">
+
+        <div class="card-body">
+
+          <h6><i class="bi bi-clock-history"></i> Audit History</h6>
+
+          <p class="text-muted small mb-0">
+            View system activity and immutable audit logs.
+          </p>
+          
+          <button class="btn btn-sm btn-outline-primary w-100 mt-2" data-bs-toggle="collapse" data-bs-target="#adminAuditPanel">View Logs</button>
 
         </div>
 
@@ -1411,6 +1430,15 @@ pre{
 
     </div>
 
+  </div>
+
+  <div class="collapse mt-3" id="adminAuditPanel">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-journal-code"></i> System Activity / Audit History</div>
+      <div class="card-body" id="adminActivityLog" style="max-height: 200px; overflow-y: auto;">
+        <!-- Logs will populate here alongside the officer dashboard -->
+      </div>
+    </div>
   </div>
 
 
@@ -1421,7 +1449,7 @@ pre{
       <span>
 
         <i class="bi bi-database"></i>
-        Database Management
+        Monitor Survey Cases
 
       </span>
 
@@ -1786,14 +1814,6 @@ function formatNumber(
 
 function addLog(action){
 
-  const log =
-    document.getElementById(
-      "activityLog"
-    );
-
-  if(!log) return;
-
-
   const row =
     document.createElement("div");
 
@@ -1804,7 +1824,19 @@ function addLog(action){
     `<strong>${new Date().toLocaleString()}</strong>
      — ${escapeHtml(action)}`;
 
-  log.prepend(row);
+  const log1 =
+    document.getElementById(
+      "activityLog"
+    );
+
+  if(log1) log1.prepend(row.cloneNode(true));
+  
+  const log2 =
+    document.getElementById(
+      "adminActivityLog"
+    );
+
+  if(log2) log2.prepend(row.cloneNode(true));
 
 }
 
@@ -2708,6 +2740,61 @@ function runQualityChecks(
   }
 
 
+  try{
+
+    const kinks =
+      turf.kinks(
+        feature
+      );
+
+
+    if(kinks.features.length > 0){
+
+      checks.push({
+
+        name:
+          "Self-intersection (kinks)",
+
+        status:
+          "ERROR"
+
+      });
+
+
+      errors++;
+
+    } else {
+
+      checks.push({
+
+        name:
+          "Self-intersection (kinks)",
+
+        status:
+          "PASS"
+
+      });
+
+    }
+
+  }catch{
+
+    checks.push({
+
+      name:
+        "Self-intersection (kinks)",
+
+      status:
+        "REVIEW REQUIRED"
+
+    });
+
+
+    warnings++;
+
+  }
+
+
   if(area <= 0){
 
     checks.push({
@@ -2986,6 +3073,33 @@ async function registerExistingRecord(){
     new_survey_method:
       document.getElementById(
         "modernMethod"
+      ).value,
+
+    old_points_text:
+      document.getElementById(
+        "oldBoundaries"
+      ) ? document.getElementById(
+            "oldBoundaries"
+          ).value.trim() : null,
+
+    old_north:
+      document.getElementById(
+        "oldNorth"
+      ).value,
+
+    old_south:
+      document.getElementById(
+        "oldSouth"
+      ).value,
+
+    old_east:
+      document.getElementById(
+        "oldEast"
+      ).value,
+
+    old_west:
+      document.getElementById(
+        "oldWest"
       ).value,
 
     audit_notes:
