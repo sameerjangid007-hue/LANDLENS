@@ -745,6 +745,20 @@ pre{
           <div class="mt-3">
 
             <label class="form-label">
+              Old Boundary Coordinates (optional)
+            </label>
+
+            <textarea id="oldBoundaries"
+                      class="form-control"
+                      rows="2"
+                      placeholder="lat,lng per line"></textarea>
+
+          </div>
+
+
+          <div class="mt-3">
+
+            <label class="form-label">
               Old Record Image / Document
             </label>
 
@@ -2708,6 +2722,61 @@ function runQualityChecks(
   }
 
 
+  try{
+
+    const kinks =
+      turf.kinks(
+        feature
+      );
+
+
+    if(kinks.features.length > 0){
+
+      checks.push({
+
+        name:
+          "Self-intersection (kinks)",
+
+        status:
+          "ERROR"
+
+      });
+
+
+      errors++;
+
+    } else {
+
+      checks.push({
+
+        name:
+          "Self-intersection (kinks)",
+
+        status:
+          "PASS"
+
+      });
+
+    }
+
+  }catch{
+
+    checks.push({
+
+      name:
+        "Self-intersection (kinks)",
+
+      status:
+        "REVIEW REQUIRED"
+
+    });
+
+
+    warnings++;
+
+  }
+
+
   if(area <= 0){
 
     checks.push({
@@ -2928,6 +2997,33 @@ async function registerExistingRecord(){
     new_survey_method:
       document.getElementById(
         "modernMethod"
+      ).value,
+
+    old_points_text:
+      document.getElementById(
+        "oldBoundaries"
+      ) ? document.getElementById(
+            "oldBoundaries"
+          ).value.trim() : null,
+
+    old_north:
+      document.getElementById(
+        "oldNorth"
+      ).value,
+
+    old_south:
+      document.getElementById(
+        "oldSouth"
+      ).value,
+
+    old_east:
+      document.getElementById(
+        "oldEast"
+      ).value,
+
+    old_west:
+      document.getElementById(
+        "oldWest"
       ).value,
 
     audit_notes:
