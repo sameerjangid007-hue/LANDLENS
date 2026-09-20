@@ -4478,7 +4478,7 @@ async function updateStatus(
 
 
 /* ============================================================
-   DOSSIER & MAP ZOOM (UPDATED)
+   DOSSIER
 ============================================================ */
 
 function selectParcelForReview(
@@ -4803,26 +4803,27 @@ function closeDossier(){
 }
 
 
-function zoomToParcel(parcelId) {
-  // Switch to Surveyor workspace where the interactive GIS map lives
-  currentUserRole = "SURVEYOR";
-  showWorkspaceForRole("SURVEYOR");
-  updateHeader();
+function zoomToParcel(
+  parcelId
+){
 
-  closeDossier();
+  const layer =
+    mapPolygons[
+      parcelId
+    ];
 
-  setTimeout(() => {
-    if (map) {
-      map.invalidateSize();
-      const layer = mapPolygons[parcelId];
-      if (layer) {
-        map.fitBounds(layer.getBounds());
-        showToast(`Zoomed map to Parcel ${parcelId}`, "success");
-      } else {
-        showToast(`Switched to map view for Parcel ${parcelId}`, "info");
-      }
-    }
-  }, 250);
+
+  if(layer){
+
+    map.fitBounds(
+      layer.getBounds()
+    );
+
+
+    closeDossier();
+
+  }
+
 }
 
 
