@@ -1978,7 +1978,6 @@ async function syncOfflineData(){
           : "/api/parcels/modern-survey";
 
 
-      // Conflict check simulation: check if server already has this parcel ID
       if(item.payload && item.payload.parcel_id) {
         try {
           const existing = await apiRequest("/api/parcels/get/" + encodeURIComponent(item.payload.parcel_id));
@@ -3086,17 +3085,14 @@ function analyzeParcelWithAI(p) {
   const newArea = Number(p.new_area || p.calculated_area || 0);
   const pct = oldArea ? ((newArea - oldArea) / oldArea) * 100 : null;
 
-  // 1. Detect unusual area changes
   if (pct !== null && Math.abs(pct) > 5) {
     flags.push(`Unusual area change detected: ${pct.toFixed(2)}% variance from historical data.`);
   }
 
-  // 2. Flag possible boundary discrepancies
   if (p.has_overlap) {
     flags.push(`Boundary discrepancy risk: Spatial overlap detected with adjacent parcel(s).`);
   }
 
-  // 3. Identify missing/inconsistent information
   if (!p.gat_no && !p.survey_no) missingInfo.push("Survey/Gat No.");
   if (!p.old_survey_method) missingInfo.push("Old Survey Method");
   if (!p.old_survey_year) missingInfo.push("Old Survey Year");
@@ -3105,7 +3101,6 @@ function analyzeParcelWithAI(p) {
     flags.push(`Missing historical information: ${missingInfo.join(", ")}.`);
   }
 
-  // 4. Detect duplicate/outlier survey points
   let hasDuplicates = false;
   const geom = getParcelGeometry(p);
   if (geom && geom.coordinates && geom.coordinates[0]) {
@@ -3120,7 +3115,6 @@ function analyzeParcelWithAI(p) {
     flags.push("Data anomaly: Duplicate consecutive survey points detected in geometry.");
   }
 
-  // Summarize
   if (flags.length === 0) {
     summary += "The modern survey aligns closely with historical data parameters. No significant anomalies or discrepancies were detected.";
   } else {
@@ -3480,11 +3474,6 @@ async function submitModernSurvey(){
 
   }
 
-
-  /*
-    Keep payload compatible with the current
-    FastAPI backend.
-  */
 
   const payload = {
 
@@ -4611,11 +4600,34 @@ function openDossier(
       <p class="mb-0">Quality status: ${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</p>
     </div>
 
+    <!-- 14. DOCUMENT / IMAGE STORAGE REPOSITORY SECTION -->
     <div class="dossier-section">
-      <h6><i class="bi bi-images"></i> Documents</h6>
-      <div class="d-flex gap-2 mt-2">
-        <button class="btn btn-sm btn-outline-primary" onclick="showToast('Displaying Historical Record Document...', 'info')"><i class="bi bi-file-earmark-pdf"></i> View Old Record Map</button>
-        <button class="btn btn-sm btn-outline-primary" onclick="showToast('Displaying Drone / Orthophoto Evidence...', 'info')"><i class="bi bi-camera"></i> View Survey Photos</button>
+      <h6><i class="bi bi-folder-check"></i> 14. Document / Image Storage & Evidence Repository</h6>
+      <div class="row g-2 mt-2">
+        <div class="col-md-6">
+          <div class="p-2 border rounded bg-white">
+            <small class="text-muted d-block fw-bold">Old Map / Photo & Survey Documents</small>
+            <button class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="showToast('Loading stored historical map/photo document...', 'info')"><i class="bi bi-file-earmark-pdf"></i> View Stored Old Record</button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-2 border rounded bg-white">
+            <small class="text-muted d-block fw-bold">New Survey Photo & Drone Imagery</small>
+            <button class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="showToast('Loading modern survey photo & drone orthophoto...', 'info')"><i class="bi bi-camera"></i> View Stored Drone / Survey Image</button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-2 border rounded bg-white">
+            <small class="text-muted d-block fw-bold">GeoJSON Boundary Data</small>
+            <button class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="showToast('Exporting stored GeoJSON boundary file...', 'success')"><i class="bi bi-filetype-json"></i> Download Stored GeoJSON</button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-2 border rounded bg-white">
+            <small class="text-muted d-block fw-bold">Survey Observations & Points</small>
+            <button class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="showToast('Displaying raw survey coordinate observations...', 'info')"><i class="bi bi-list-ol"></i> View Survey Observations</button>
+          </div>
+        </div>
       </div>
     </div>
 
