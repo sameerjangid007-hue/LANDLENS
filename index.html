@@ -3249,21 +3249,7 @@ async function registerExistingRecord(){
       ).value,
 
     audit_notes:
-      `Historical record year:
-       ${
-         document.getElementById(
-           "oldYear"
-         ).value ||
-         "Not specified"
-       };
-
-       RoR reference:
-       ${
-         document.getElementById(
-           "rorRef"
-         ).value ||
-         "Not specified"
-       }`
+      `Historical record submitted by ${currentUserRole || "SURVEYOR"} at ${new Date().toLocaleString()}. Year: ${document.getElementById("oldYear").value || "Not specified"}; Area: ${oldArea} m2; RoR ref: ${document.getElementById("rorRef").value || "Not specified"}`
 
   };
 
@@ -3302,7 +3288,7 @@ async function registerExistingRecord(){
 
 
     addLog(
-      `Existing parcel record saved: ${parcelId}`
+      `Existing parcel record saved by ${currentUserRole || "SURVEYOR"}: ${parcelId}`
     );
 
 
@@ -3533,7 +3519,7 @@ async function submitModernSurvey(){
 
 
     addLog(
-      `Modern ${method} survey submitted for ${parcelId}`
+      `Modern ${method} survey submitted by SURVEYOR at ${new Date().toLocaleString()} for ${parcelId} (Data: ${pointsText.split('\n').length} points, Area: ${formatNumber(calculatedArea)} m2)`
     );
 
 
@@ -4419,7 +4405,7 @@ async function updateStatus(
 
 
     addLog(
-      `${status}: ${parcelId}`
+      `Officer Decision & Status Change: Parcel ${parcelId} updated to ${status} by AUTHORIZED OFFICER at ${new Date().toLocaleString()}.`
     );
 
 
@@ -4600,7 +4586,6 @@ function openDossier(
       <p class="mb-0">Quality status: ${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</p>
     </div>
 
-    <!-- 14. DOCUMENT / IMAGE STORAGE REPOSITORY SECTION -->
     <div class="dossier-section">
       <h6><i class="bi bi-folder-check"></i> 14. Document / Image Storage & Evidence Repository</h6>
       <div class="row g-2 mt-2">
@@ -4616,34 +4601,22 @@ function openDossier(
             <button class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="showToast('Loading modern survey photo & drone orthophoto...', 'info')"><i class="bi bi-camera"></i> View Stored Drone / Survey Image</button>
           </div>
         </div>
-        <div class="col-md-6">
-          <div class="p-2 border rounded bg-white">
-            <small class="text-muted d-block fw-bold">GeoJSON Boundary Data</small>
-            <button class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="showToast('Exporting stored GeoJSON boundary file...', 'success')"><i class="bi bi-filetype-json"></i> Download Stored GeoJSON</button>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="p-2 border rounded bg-white">
-            <small class="text-muted d-block fw-bold">Survey Observations & Points</small>
-            <button class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="showToast('Displaying raw survey coordinate observations...', 'info')"><i class="bi bi-list-ol"></i> View Survey Observations</button>
-          </div>
-        </div>
       </div>
     </div>
 
     <div class="dossier-section border-0 mb-0">
-      <h6><i class="bi bi-clock-history"></i> Officer Verification ➔ Final Status ➔ History</h6>
+      <h6><i class="bi bi-clock-history"></i> 15. Audit Trail & Version History</h6>
       <div class="mb-3 mt-2">
         <strong>Current Final Status:</strong> ${statusBadge(p.verification_status || p.status || "PENDING")}
       </div>
       
       <div class="bg-light p-3 rounded">
-        <strong>Case History / Audit Log:</strong>
+        <strong>Complete Version History & Audit Log:</strong>
         <ul class="list-group list-group-flush small mt-2 mb-0">
-          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[System]</strong> Unified digital case initialized.</li>
-          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[Surveyor]</strong> Historical records linked (Year: ${escapeHtml(p.old_survey_year || "Unknown")}, Method: ${escapeHtml(p.old_survey_method || "Unknown")}).</li>
-          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[Surveyor]</strong> Modern survey data captured via ${escapeHtml(p.new_survey_method || p.instrument_type || "—")}.</li>
-          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[Audit Notes]</strong> ${escapeHtml(p.audit_notes || p.remark || "No notes available.")}</li>
+          <li class="list-group-item bg-transparent px-0 py-1"><strong>[Version 1.0 - Initial Record]</strong> Historical record registered (Old Area: ${formatNumber(oldArea)} m², Method: ${escapeHtml(p.old_survey_method || "Unknown")}).</li>
+          <li class="list-group-item bg-transparent px-0 py-1"><strong>[Version 2.0 - Modern Survey Submission]</strong> Submitted by SURVEYOR (Instrument: ${escapeHtml(p.new_survey_method || p.instrument_type || "GPS/RTK")}, Calculated Area: ${formatNumber(newArea)} m², Accuracy: ${p.accuracy_m ? p.accuracy_m + 'm' : 'Standard'}).</li>
+          <li class="list-group-item bg-transparent px-0 py-1"><strong>[Audit Notes / Resurvey Requests]</strong> ${escapeHtml(p.audit_notes || p.remark || "No additional resurvey requests logged.")}</li>
+          <li class="list-group-item bg-transparent px-0 py-1 text-primary"><strong>[Officer Verification Decision]</strong> Current Status recorded as: ${escapeHtml(p.verification_status || p.status || "PENDING")}.</li>
         </ul>
       </div>
     </div>
@@ -4791,7 +4764,7 @@ function submitFarmerRequest(){
   }
   
   showToast("Survey request submitted successfully.", "success");
-  addLog(`Citizen submitted resurvey request for ${parcelId}`);
+  addLog(`Resurvey Request: Citizen submitted request for parcel ${parcelId} (Reason: ${reason}) at ${new Date().toLocaleString()}.`);
   
   const tbody = document.getElementById("farmerRequestsBody");
   if(tbody.innerHTML.includes("No active requests")){
