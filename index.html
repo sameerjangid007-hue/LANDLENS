@@ -4060,6 +4060,71 @@ function renderOfficerQueue(){
 
 
 /* ============================================================
+   SURVEYOR QUEUE
+============================================================ */
+
+async function loadSurveyorQueue(){
+
+  try{
+
+    const data =
+      await apiRequest(
+        "/api/parcels/list"
+      );
+
+
+    globalParcelsDatabase =
+      Array.isArray(data)
+        ? data
+        : (
+            data.parcels ||
+            data.items ||
+            []
+          );
+
+
+    const tbody = document.querySelector("#surveyorQueueTable tbody");
+    if(!tbody) return;
+
+    let pendingCases = globalParcelsDatabase.filter(p => {
+      const status = String(p.verification_status || p.status || "").toLowerCase();
+      return status.includes("pending") || status.includes("resurvey");
+    });
+
+    if(pendingCases.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted small">No pending cases assigned.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = pendingCases.map(p => {
+      const status = p.verification_status || p.status || "PENDING";
+      return `
+        <tr>
+          <td><strong>${escapeHtml(p.parcel_id)}</strong></td>
+          <td>Field Check</td>
+          <td>${statusBadge(status)}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary py-0" onclick="document.getElementById('parcelId').value='${escapeAttr(p.parcel_id)}'; showToast('Loaded ${escapeAttr(p.parcel_id)} into form.', 'info');">Load</button>
+          </td>
+        </tr>`;
+    }).join("");
+
+    showToast("Surveyor queue refreshed.", "success");
+
+  }catch(error){
+
+    showToast(
+      "Could not load surveyor queue: " +
+      error.message,
+      "danger"
+    );
+
+  }
+
+}
+
+
+/* ============================================================
    BADGES
 ============================================================ */
 
@@ -4455,6 +4520,15 @@ function openDossier(
       </div>
     </div>
 
+
+    <!-- NEW: Document Evidence -->
+    <div class="dossier-section">
+      <h6><i class="bi bi-images"></i> Attached Evidence / Documents</h6>
+      <div class="d-flex gap-2 mt-2">
+        <button class="btn btn-sm btn-outline-primary" onclick="showToast('Displaying Historical Record Document...', 'info')"><i class="bi bi-file-earmark-pdf"></i> View Old Record Map</button>
+        <button class="btn btn-sm btn-outline-primary" onclick="showToast('Displaying Drone / Orthophoto Evidence...', 'info')"><i class="bi bi-camera"></i> View Survey Photos</button>
+      </div>
+    </div>
 
     <div class="dossier-section">
       <h6><i class="bi bi-globe"></i> GIS / Quality Checks</h6>
