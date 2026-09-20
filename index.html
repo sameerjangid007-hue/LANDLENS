@@ -5882,40 +5882,24 @@ function renderParcelTable(
 /* ============================================================
    EDIT & DELETE PARCEL MANAGEMENT
 ============================================================ */
-
-function editParcel(parcelId) {
-  const p = globalParcelsDatabase.find(x => String(x.parcel_id) === String(parcelId));
-  if (!p) {
-    showToast("Parcel record not found for editing.", "warning");
-    return;
-  }
-
-  currentUserRole = "SURVEYOR";
-  showWorkspaceForRole("SURVEYOR");
-  updateHeader();
-
-  document.getElementById("parcelId").value = p.parcel_id || "";
-  document.getElementById("villageId").value = p.village_id || "";
-  document.getElementById("ownerName").value = p.owner_name || "";
-  document.getElementById("gatNo").value = p.gat_no || p.survey_no || "";
-  document.getElementById("ctsNo").value = p.cts_no || "";
-  document.getElementById("oldArea").value = p.old_area || "";
-  document.getElementById("oldYear").value = p.old_survey_year || "";
-  
-  showToast(`Loaded Parcel ${parcelId} into Surveyor form for correction. Modify and re-save as needed.`, "info");
-  addLog(`Admin initiated edit for parcel record: ${parcelId}`);
-}
-
 async function deleteParcel(parcelId) {
   if (!confirm(`Are you sure you want to delete incorrect parcel record ${parcelId}?`)) return;
 
   try {
+    // Save to local browser memory so it stays deleted across refreshes
+    let deletedList = JSON.parse(localStorage.getItem("landlens_deleted") || "[]");
+    if (!deletedList.includes(parcelId)) {
+      deletedList.push(parcelId);
+      localStorage.setItem("landlens_deleted", JSON.stringify(deletedList));
+    }
+
+    // Remove from active memory database and refresh map/table
     globalParcelsDatabase = globalParcelsDatabase.filter(x => String(x.parcel_id) !== String(parcelId));
     clearSavedPolygons();
     detectOverlaps();
     
     if (currentUserRole === "ADMIN") {
-      loadAdminDatabase(true);
+      renderParcelTable(globalParcelsDatabase, "adminTable", "ADMIN");
     }
 
     showToast(`Parcel record ${parcelId} deleted successfully.`, "success");
@@ -5924,7 +5908,6 @@ async function deleteParcel(parcelId) {
     showToast("Could not delete parcel: " + err.message, "danger");
   }
 }
-
 
 /* ============================================================
    VIEW PARCEL
