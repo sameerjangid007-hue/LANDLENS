@@ -599,6 +599,19 @@ pre{
                      placeholder="2">
 
             </div>
+            
+            
+            <div class="col-md-6">
+
+              <label class="form-label">
+                Owner / Occupant Name
+              </label>
+
+              <input id="ownerName"
+                     class="form-control"
+                     placeholder="Optional">
+
+            </div>
 
 
             <div class="col-md-6">
@@ -3058,6 +3071,11 @@ async function registerExistingRecord(){
 
     village_id:
       villageId,
+      
+    owner_name: 
+      document.getElementById(
+        "ownerName"
+      ) ? document.getElementById("ownerName").value.trim() : null,
 
     old_area:
       oldArea,
@@ -3073,33 +3091,6 @@ async function registerExistingRecord(){
     new_survey_method:
       document.getElementById(
         "modernMethod"
-      ).value,
-
-    old_points_text:
-      document.getElementById(
-        "oldBoundaries"
-      ) ? document.getElementById(
-            "oldBoundaries"
-          ).value.trim() : null,
-
-    old_north:
-      document.getElementById(
-        "oldNorth"
-      ).value,
-
-    old_south:
-      document.getElementById(
-        "oldSouth"
-      ).value,
-
-    old_east:
-      document.getElementById(
-        "oldEast"
-      ).value,
-
-    old_west:
-      document.getElementById(
-        "oldWest"
       ).value,
 
     audit_notes:
@@ -4511,6 +4502,16 @@ function openDossier(
     "dossierContent"
   ).innerHTML = `
 
+    <div class="dossier-section bg-light p-3 rounded mb-3 border border-secondary-subtle">
+      <h5 class="text-primary fw-bold mb-3"><i class="bi bi-hdd-network"></i> UNIFIED DIGITAL CASE FILE</h5>
+      <div class="row g-3">
+        <div class="col-md-3"><strong>Parcel ID:</strong><br>${escapeHtml(p.parcel_id)}</div>
+        <div class="col-md-3"><strong>Ownership / Record:</strong><br><span class="text-muted">${escapeHtml(p.owner_name || "Pending / Unrecorded")}</span></div>
+        <div class="col-md-3"><strong>Survey / Gat No:</strong><br>${escapeHtml(p.gat_no || p.survey_no || "—")}</div>
+        <div class="col-md-3"><strong>Village ID:</strong><br>${escapeHtml(p.village_id || "—")}</div>
+      </div>
+    </div>
+
     <div class="dossier-section border border-info rounded p-3 mb-4 bg-light">
       <h6 class="text-info-emphasis fw-bold"><i class="bi bi-robot"></i> AI Assistant Insight Report</h6>
       <p class="small text-muted mb-2 border-bottom border-info-subtle pb-2"><em>Note: AI is designed to assist in highlighting data anomalies. It does not make official decisions. Final verification rests with the Authorized Officer.</em></p>
@@ -4522,71 +4523,7 @@ function openDossier(
     </div>
 
     <div class="dossier-section">
-
-      <h5>
-        ${escapeHtml(
-          p.parcel_id
-        )}
-      </h5>
-
-
-      <div class="row g-2">
-
-        <div class="col-md-4">
-
-          <strong>
-            Survey/Gat No:
-          </strong>
-
-          <br>
-
-          ${escapeHtml(
-            p.gat_no ||
-            p.survey_no ||
-            "—"
-          )}
-
-        </div>
-
-
-        <div class="col-md-4">
-
-          <strong>
-            CTS No:
-          </strong>
-
-          <br>
-
-          ${escapeHtml(
-            p.cts_no ||
-            "—"
-          )}
-
-        </div>
-
-
-        <div class="col-md-4">
-
-          <strong>
-            Village ID:
-          </strong>
-
-          <br>
-
-          ${escapeHtml(
-            p.village_id ||
-            "—"
-          )}
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div class="dossier-section">
-      <h6><i class="bi bi-bar-chart-half"></i> Old Data vs New Data Comparison</h6>
+      <h6><i class="bi bi-bar-chart-half"></i> Old Survey ➔ Modern Survey ➔ Comparison</h6>
       <div class="table-responsive mt-3">
         <table class="table table-bordered align-middle">
           <thead class="table-light">
@@ -4634,30 +4571,39 @@ function openDossier(
       </div>
     </div>
 
-
-    <!-- NEW: Document Evidence -->
     <div class="dossier-section">
-      <h6><i class="bi bi-images"></i> Attached Evidence / Documents</h6>
+      <h6><i class="bi bi-globe"></i> GIS Geometry & Quality Check</h6>
+      <p class="mb-1">Spatial overlap:
+        ${p.has_overlap
+            ? '<strong class="text-warning">Detected — requires field/legal verification</strong>'
+            : '<strong class="text-success">No overlap detected in current dataset</strong>'}
+      </p>
+      <p class="mb-0">Quality status: ${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</p>
+    </div>
+
+    <div class="dossier-section">
+      <h6><i class="bi bi-images"></i> Documents</h6>
       <div class="d-flex gap-2 mt-2">
         <button class="btn btn-sm btn-outline-primary" onclick="showToast('Displaying Historical Record Document...', 'info')"><i class="bi bi-file-earmark-pdf"></i> View Old Record Map</button>
         <button class="btn btn-sm btn-outline-primary" onclick="showToast('Displaying Drone / Orthophoto Evidence...', 'info')"><i class="bi bi-camera"></i> View Survey Photos</button>
       </div>
     </div>
 
-    <div class="dossier-section">
-      <h6><i class="bi bi-globe"></i> GIS / Quality Checks</h6>
-      <p>Spatial overlap:
-        ${p.has_overlap
-            ? '<strong class="text-warning">Detected — requires field/legal verification</strong>'
-            : '<strong class="text-success">No overlap detected in current dataset</strong>'}
-      </p>
-      <p>Quality status: ${qualityBadge(p.quality_status || (p.has_overlap ? "REVIEW REQUIRED":"PASS"))}</p>
-    </div>
-
-    <div class="dossier-section">
-      <h6><i class="bi bi-journal-text"></i> Audit / Source Notes</h6>
-      <pre class="bg-light p-3 rounded mb-2">${escapeHtml(p.audit_notes || p.remark || "No notes available.")}</pre>
-      <strong>Current Workflow Status:</strong> ${statusBadge(p.verification_status || p.status || "PENDING")}
+    <div class="dossier-section border-0 mb-0">
+      <h6><i class="bi bi-clock-history"></i> Officer Verification ➔ Final Status ➔ History</h6>
+      <div class="mb-3 mt-2">
+        <strong>Current Final Status:</strong> ${statusBadge(p.verification_status || p.status || "PENDING")}
+      </div>
+      
+      <div class="bg-light p-3 rounded">
+        <strong>Case History / Audit Log:</strong>
+        <ul class="list-group list-group-flush small mt-2 mb-0">
+          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[System]</strong> Unified digital case initialized.</li>
+          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[Surveyor]</strong> Historical records linked (Year: ${escapeHtml(p.old_survey_year || "Unknown")}, Method: ${escapeHtml(p.old_survey_method || "Unknown")}).</li>
+          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[Surveyor]</strong> Modern survey data captured via ${escapeHtml(p.new_survey_method || p.instrument_type || "—")}.</li>
+          <li class="list-group-item bg-transparent px-0 py-1 text-muted"><strong>[Audit Notes]</strong> ${escapeHtml(p.audit_notes || p.remark || "No notes available.")}</li>
+        </ul>
+      </div>
     </div>
 
     <div class="d-flex gap-2 flex-wrap mt-3">
