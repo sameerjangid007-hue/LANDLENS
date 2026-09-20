@@ -1265,7 +1265,7 @@ pre{
 
 
         <button class="btn btn-sm btn-outline-secondary"
-                onclick="loadSavedPolygons()">
+                onclick="loadOfficerQueue()">
 
           Refresh
 
@@ -3093,6 +3093,33 @@ async function registerExistingRecord(){
         "modernMethod"
       ).value,
 
+    old_points_text:
+      document.getElementById(
+        "oldBoundaries"
+      ) ? document.getElementById(
+            "oldBoundaries"
+          ).value.trim() : null,
+
+    old_north:
+      document.getElementById(
+        "oldNorth"
+      ).value,
+
+    old_south:
+      document.getElementById(
+        "oldSouth"
+      ).value,
+
+    old_east:
+      document.getElementById(
+        "oldEast"
+      ).value,
+
+    old_west:
+      document.getElementById(
+        "oldWest"
+      ).value,
+
     audit_notes:
       `Historical record year:
        ${
@@ -3158,6 +3185,7 @@ async function registerExistingRecord(){
 
 
     await loadSavedPolygons();
+    if(currentUserRole === "SURVEYOR") loadSurveyorQueue(true);
 
 
   }catch(error){
@@ -3393,6 +3421,7 @@ async function submitModernSurvey(){
 
 
     await loadSavedPolygons();
+    if(currentUserRole === "SURVEYOR") loadSurveyorQueue(true);
 
 
   }catch(error){
@@ -3707,7 +3736,7 @@ function generateDronePath(){
    PARCEL LIST
 ============================================================ */
 
-async function loadSavedPolygons(){
+async function loadSavedPolygons(silent = false){
 
   try{
 
@@ -3732,14 +3761,10 @@ async function loadSavedPolygons(){
     detectOverlaps();
 
 
-    if(
-      currentUserRole ===
-      "OFFICER"
-    ){
-
-      renderOfficerQueue();
-
-    }
+    if(currentUserRole === "OFFICER") renderOfficerQueue();
+    else if(currentUserRole === "ADMIN") loadAdminDatabase(true);
+    else if(currentUserRole === "SURVEYOR") loadSurveyorQueue(true);
+    else if(currentUserRole === "FARMER") searchFarmerParcel(true);
 
 
   }catch(error){
@@ -4024,7 +4049,7 @@ function parcelColor(
    OFFICER QUEUE
 ============================================================ */
 
-async function loadOfficerQueue(){
+async function loadOfficerQueue(silent = false){
 
   try{
 
@@ -4146,7 +4171,7 @@ async function loadOfficerQueue(){
 
   }catch(error){
 
-    showToast(
+    if(!silent) showToast(
       "Could not load officer queue: " +
       error.message,
       "danger"
@@ -4168,7 +4193,7 @@ function renderOfficerQueue(){
    SURVEYOR QUEUE
 ============================================================ */
 
-async function loadSurveyorQueue(){
+async function loadSurveyorQueue(silent = false){
 
   try{
 
@@ -4214,11 +4239,11 @@ async function loadSurveyorQueue(){
         </tr>`;
     }).join("");
 
-    showToast("Surveyor queue refreshed.", "success");
+    if(!silent) showToast("Surveyor queue refreshed.", "success");
 
   }catch(error){
 
-    showToast(
+    if(!silent) showToast(
       "Could not load surveyor queue: " +
       error.message,
       "danger"
@@ -4412,6 +4437,7 @@ async function updateStatus(
 
 
     await loadSavedPolygons();
+    if(currentUserRole === "OFFICER") loadOfficerQueue(true);
 
 
   }catch(error){
@@ -4770,7 +4796,7 @@ function submitFarmerRequest(){
   document.getElementById("requestParcelId").value = "";
 }
 
-async function searchFarmerParcel(){
+async function searchFarmerParcel(silent = false){
 
   const query =
     document.getElementById(
@@ -4781,14 +4807,13 @@ async function searchFarmerParcel(){
 
 
   if(!query){
-
-    showToast(
-      "Enter Parcel ID or Gat Number.",
-      "warning"
-    );
-
+    if(!silent){
+      showToast(
+        "Enter Parcel ID or Gat Number.",
+        "warning"
+      );
+    }
     return;
-
   }
 
 
@@ -4975,11 +5000,12 @@ async function searchFarmerParcel(){
       error
     );
 
-
-    showToast(
-      "Could not retrieve parcel data.",
-      "danger"
-    );
+    if(!silent){
+      showToast(
+        "Could not retrieve parcel data.",
+        "danger"
+      );
+    }
 
   }
 
@@ -5472,7 +5498,7 @@ function renderCharts(){
    ADMIN DATABASE
 ============================================================ */
 
-async function loadAdminDatabase(){
+async function loadAdminDatabase(silent = false){
 
   if(
     currentUserRole !==
@@ -5505,12 +5531,12 @@ async function loadAdminDatabase(){
       "ADMIN"
     );
 
-
-    showToast(
-      "Database loaded successfully.",
-      "success"
-    );
-
+    if(!silent){
+      showToast(
+        "Database loaded successfully.",
+        "success"
+      );
+    }
 
   }catch(error){
 
@@ -5518,13 +5544,13 @@ async function loadAdminDatabase(){
       error
     );
 
-
-    showToast(
-      "Could not load database: " +
-      error.message,
-      "danger"
-    );
-
+    if(!silent){
+      showToast(
+        "Could not load database: " +
+        error.message,
+        "danger"
+      );
+    }
   }
 
 }
@@ -6099,6 +6125,27 @@ async function viewParcel(
   }
 
 }
+
+
+/* ============================================================
+   REAL-TIME UPDATES (POLLING SIMULATION)
+============================================================ */
+
+// Simulating WebSocket/SSE live updates as per requirements
+setInterval(() => {
+  if (!navigator.onLine || !currentUserRole) return;
+  
+  // Auto-update the active dashboard silently
+  if (currentUserRole === "ADMIN") {
+    loadAdminDatabase(true);
+  } else if (currentUserRole === "OFFICER") {
+    loadOfficerQueue(true);
+  } else if (currentUserRole === "SURVEYOR") {
+    loadSurveyorQueue(true);
+  } else if (currentUserRole === "FARMER") {
+    searchFarmerParcel(true);
+  }
+}, 15000); // 15-second polling interval
 
 
 /* ============================================================
