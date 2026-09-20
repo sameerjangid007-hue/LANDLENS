@@ -4492,6 +4492,43 @@ function selectParcelForReview(
 }
 
 
+function viewOldRecord(parcelId) {
+  const body = document.getElementById("previewModalBody");
+  document.getElementById("previewModalTitle").innerHTML = `<i class="bi bi-file-earmark-pdf"></i> Historical Record Map / RoR - Parcel ${parcelId}`;
+  body.innerHTML = `
+    <div class="alert alert-secondary">Scanned Historical Cadastral Map & Record of Rights (RoR)</div>
+    <div class="border p-3 bg-light rounded text-start">
+      <p><strong>Parcel ID:</strong> ${parcelId}</p>
+      <p><strong>Record Type:</strong> Historical Hand-drawn Cadastral Sheet / RoR Reference</p>
+      <p><strong>Archive Status:</strong> Digitally Verified & Archived from Revenue Department Records.</p>
+      <div class="text-center p-4 border bg-white rounded">
+        <i class="bi bi-file-earmark-richtext display-1 text-secondary"></i>
+        <p class="text-muted mt-2">[Mock Scanned Document Preview: Village Land Register Sheet #142]</p>
+      </div>
+    </div>
+  `;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById("previewModal")).show();
+}
+
+function viewDroneImage(parcelId) {
+  const body = document.getElementById("previewModalBody");
+  document.getElementById("previewModalTitle").innerHTML = `<i class="bi bi-camera"></i> Drone Orthophoto & Survey Image - Parcel ${parcelId}`;
+  body.innerHTML = `
+    <div class="alert alert-success">High-Resolution Orthomosaic & RTK Field Capture</div>
+    <div class="border p-3 bg-light rounded text-start">
+      <p><strong>Parcel ID:</strong> ${parcelId}</p>
+      <p><strong>Instrument:</strong> RTK GNSS Rover / Autonomous Drone Orthophoto</p>
+      <p><strong>Capture Date:</strong> ${new Date().toLocaleDateString()}</p>
+      <div class="text-center p-4 border bg-dark text-white rounded">
+        <i class="bi bi-map-fill display-1 text-info"></i>
+        <p class="text-light mt-2">[Orthomosaic Aerial Imagery Tile Loaded Successfully - 2cm/pixel resolution]</p>
+      </div>
+    </div>
+  `;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById("previewModal")).show();
+}
+
+
 function openDossier(
   parcelId
 ){
